@@ -11,7 +11,7 @@ import (
 	"github.com/Ztkent/bash-gpt/pkg/aiclient"
 )
 
-func StartConversationCLI(client *aiclient.Client, systemPrompt string) error {
+func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) error {
 	var exitCommands = []string{"exit", "quit", "bye"}
 	var helpCommands = []string{"help", "?"}
 
@@ -23,7 +23,6 @@ func StartConversationCLI(client *aiclient.Client, systemPrompt string) error {
 	defer cancel()
 
 	// Start the chat with a fresh conversation, and get the system greeting
-	conv := aiclient.NewConversation(systemPrompt)
 	introChat, err := client.SendCompletionRequest(oneMin, conv, "")
 	if err != nil {
 		return err

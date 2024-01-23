@@ -18,3 +18,27 @@ func (a AnyscaleModel) String() string {
 func (o OpenAIModel) String() string {
 	return string(o)
 }
+
+func IsAnyscaleModel(name string) (AnyscaleModel, bool) {
+	switch name {
+	case Mistral7BInstruct.String(), "m7b":
+		return Mistral7BInstruct, true
+	case Llama27bChat.String(), "l7b":
+		return Llama27bChat, true
+	case Llama213bChat.String(), "l13b":
+		return Llama213bChat, true
+	case Mixtral8x7BInstruct.String(), "m8x7b":
+		return Mixtral8x7BInstruct, true
+	default:
+		return "", false
+	}
+}
+
+func IsOpenAIModel(name string) (OpenAIModel, bool) {
+	switch name {
+	case GPT35Turbo.String(), "turbo":
+		return GPT35Turbo, true
+	default:
+		return "", false
+	}
+}
