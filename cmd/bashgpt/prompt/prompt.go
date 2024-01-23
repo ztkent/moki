@@ -1,0 +1,6 @@
+package prompt
+
+const (
+	BashGPTPrompt = `
+	`
+)

@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🖥️ start bashgpt 🖥️",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/cmd/bashgpt/bashgpt.go",
+      "args": [],
+      "envFile": "${workspaceFolder}/.env",
+    }
+  ]
+}
