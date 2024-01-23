@@ -19,6 +19,7 @@ type Conversation struct {
 
 const (
 	MAX_CONVERSATION_LENGTH = 100
+	MAX_TOKENS              = 1600
 )
 
 // Start a new conversation with the system prompt
@@ -27,6 +28,9 @@ const (
 func NewConversation(systemPrompt string, maxMessages int, maxTokens int) *Conversation {
 	if maxMessages == 0 {
 		maxMessages = MAX_CONVERSATION_LENGTH
+	}
+	if maxTokens == 0 {
+		maxTokens = MAX_TOKENS
 	}
 	conv := &Conversation{
 		Messages: []openai.ChatCompletionMessage{

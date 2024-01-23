@@ -8,11 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog/log"
+
 	"github.com/Ztkent/bash-gpt/pkg/aiclient"
 )
 
 func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) error {
-	var exitCommands = []string{"exit", "quit", "bye"}
+	var exitCommands = []string{"exit", "quit", "bye", ":q", "end", "q"}
 	var helpCommands = []string{"help", "?"}
 
 	// This is the maximum conversation time
@@ -27,7 +29,7 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 	if err != nil {
 		return err
 	}
-	fmt.Print(introChat)
+	fmt.Println("Intro: " + introChat)
 
 	// Lets start a conversation with the user via CLI
 	reader := bufio.NewReader(os.Stdin)
@@ -49,7 +51,7 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 			continue
 		}
 
-		// Send the user's input to the AI 🤖, wait at most 1 minute.
+		// Send the user's input to the LLM 🤖, wait at most 1 minute.
 		oneMin, cancel = context.WithTimeout(thirtyMin, time.Minute*1)
 		defer cancel()
 		responseChan, errChan := make(chan string), make(chan error)
@@ -73,6 +75,33 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 				}
 			}
 		}
+		fmt.Println()
 	}
 	return nil
+}
+
+// Log the results of a fresh chat stream
+func LogNewChatStream(client *aiclient.Client, conv *aiclient.Conversation, chatPrompt string) error {
+	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+
+	// Start the chat with a fresh conversation, and the users prompt
+	responseChan, errChan := make(chan string), make(chan error)
+	log.Debug().Msg(fmt.Sprintf("prompt: " + chatPrompt))
+	go client.SendStreamRequest(oneMin, conv, chatPrompt, responseChan, errChan)
+	// Read the response from the channel as it is streamed
+	for {
+		select {
+		case response, ok := <-responseChan:
+			if !ok {
+				// Request channel closed
+				fmt.Println()
+				return nil
+			}
+			fmt.Print(response)
+		case err := <-errChan:
+			fmt.Println()
+			return err
+		}
+	}
 }

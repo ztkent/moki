@@ -3,13 +3,13 @@ package aiclient
 type AnyscaleModel string
 type OpenAIModel string
 
-// TODO: Support the rest of the models
-
 const (
 	Mistral7BInstruct   AnyscaleModel = "mistralai/Mistral-7B-Instruct-v0.1"
 	Llama27bChat        AnyscaleModel = "meta-llama/Llama-2-7b-chat-hf"
 	Llama213bChat       AnyscaleModel = "meta-llama/Llama-2-13b-chat-hf"
+	Llama270bChat       AnyscaleModel = "meta-llama/Llama-2-70b-chat-hf"
 	Mixtral8x7BInstruct AnyscaleModel = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+	CodeLlama34b        AnyscaleModel = "codellama/CodeLlama-34b-Instruct-hf"
 	GPT35Turbo          OpenAIModel   = "gpt-3.5-turbo"
 )
 
@@ -31,6 +31,10 @@ func IsAnyscaleModel(name string) (AnyscaleModel, bool) {
 		return Llama213bChat, true
 	case Mixtral8x7BInstruct.String(), "m8x7b":
 		return Mixtral8x7BInstruct, true
+	case Llama270bChat.String(), "l70b":
+		return Llama270bChat, true
+	case CodeLlama34b.String(), "cl34b":
+		return CodeLlama34b, true
 	default:
 		return "", false
 	}

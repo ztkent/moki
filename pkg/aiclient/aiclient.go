@@ -15,7 +15,6 @@ type Client struct {
 // Waits for the entire response to be returned
 // Adds the users request, and the response to the conversation
 func (c *Client) SendCompletionRequest(ctx context.Context, conv *Conversation, userPrompt string) (string, error) {
-
 	// Add the latest message to the conversation
 	err := conv.Append(openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
@@ -25,7 +24,7 @@ func (c *Client) SendCompletionRequest(ctx context.Context, conv *Conversation, 
 		return "", err
 	}
 
-	// Send the request to the AI 🤖
+	// Send the request to the LLM 🤖
 	completion, err := c.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
 		Model:       c.Model,
 		Messages:    conv.Messages,
@@ -66,11 +65,12 @@ func (c *Client) SendStreamRequest(ctx context.Context, conv *Conversation, user
 		return
 	}
 
-	// Stream the request to the AI 🤖
+	// Stream the request to the LLM 🤖
 	completionStream, err := c.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
 		Model:       c.Model,
-		Messages:    conv.Messages,
 		Temperature: c.Temperature,
+		Messages:    conv.Messages,
+		MaxTokens:   conv.maxTokens,
 	})
 	if err != nil {
 		errChan <- err
@@ -87,7 +87,6 @@ func (c *Client) SendStreamRequest(ctx context.Context, conv *Conversation, user
 			responseChat += token.Delta.Content
 		}
 	}
-
 	// Add the response to the conversation, once the stream is closed
 	err = conv.Append(openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleAssistant,
