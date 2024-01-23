@@ -16,7 +16,7 @@ An AI assitant that helps with command-line tasks like finding files, installing
 
 - Run the assistant:
   ```bash
-  bashgpt
+  bashgpt [your message]
   ```
 
 ### Options
@@ -27,38 +27,42 @@ An AI assitant that helps with command-line tasks like finding files, installing
 Flags:
   -h:                        Show this message
   -c:                        Start a conversation with BashGPT
-  -set [openai, anyscale]:   Set the AI Provider
-  -model [string]:           Set the model to use for the AI response
+  -ai [openai, anyscale]:    Set the AI Provider
+  -m [string]:               Set the model to use for the AI response
   -max-messages [int]:       Set the maximum conversation context length
   -max-tokens [int]:         Set the maximum number of tokens to generate
-  -temperature [0.0-1.0]:    Set the temperature for the AI response
+  -t [0.0-1.0]:              Set the temperature for the AI response
 
-  Model Options:
-    -openai:
-	  - gpt-3.5-turbo, aka: turbo
-	-anyscale:
-	  - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
-	  - mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
-	  - meta-llama/Llama-2-7b-chat-hf, aka: l7b
-	  - meta-llama/Llama-2-13b-chat-hf, aka: l13b
+Model Options:
+  - OpenAI:
+    - gpt-3.5-turbo, aka: turbo
+  - Anyscale:
+    - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
+    - mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
+    - meta-llama/Llama-2-7b-chat-hf, aka: l7b
+    - meta-llama/Llama-2-13b-chat-hf, aka: l13b
 ```
 
 #### API Provider
-By default the assistant will use the Anyscale API. To use OpenAI, run the assistant with a flag.  
-Future requests to the assistant will use the selected provider. Conversation context will be maintained.
+By default the assistant will use the Anyscale API. To use OpenAI, run the assistant with a flag. 
+Conversation context will be maintained.
 
 ```bash
-Flags
-bashgpt -set openai
-bashgpt -set anyscale 
+bashgpt -ai openai
+bashgpt -ai anyscale 
 ```
 
 #### Model
 Depending on the AI Provider selected, different models are available.  
-By default the Anyscale API uses the `Mistral-7B-Instruct-v0.1`, and OpenAI uses `gpt-3.5-turbo`.  
-To adjust the model to `Mixtral-8x7B-Instruct-v0.1`, do this:
+By default the Anyscale API uses the `Mistral-7B-Instruct-v0.1`, and OpenAI uses `gpt-3.5-turbo`.
 ```bash
-bashgpt -model m8x7b
+bashgpt -m m8x7b
+```
+
+#### Conversation
+The assistant can be used in a conversational mode. This allows the assistant to remember previous messages and use them to generate more in-depth responses.
+```bash
+bashgpt -c
 ```
 
 #### Conversation Context

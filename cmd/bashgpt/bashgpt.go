@@ -63,6 +63,11 @@ func main() {
 				-max-tokens [int]:         Set the maximum number of tokens to generate
 				-t [0.0-1.0]:              Set the temperature for the AI response
 
+			API Keys:
+				Set your API keys as environment variables:
+					- export OPENAI_API_KEY=<your key>
+					- export ANYSCALE_API_KEY=<your key>
+
 			Model Options:
 				- OpenAI:
 					- gpt-3.5-turbo, aka: turbo
@@ -77,30 +82,36 @@ func main() {
 
 	var client *aiclient.Client
 	if *aiFlag == "openai" {
-		if model, ok := aiclient.IsOpenAIModel(*modelFlag); ok {
-			fmt.Printf("Starting conversation with OpenAI-%s\n", model)
-			err := aiclient.MustLoadAPIKey(true, false)
-			if err != nil {
-				fmt.Printf("Failed to load OpenAI API key: %s\n", err)
-				return
-			}
-			client = aiclient.MustConnectOpenAI(model, float32(*temperatureFlag))
-		} else {
-			fmt.Println(fmt.Sprintf("Invalid OpenAI model: %s provided, please provide a valid model", *modelFlag))
+		err := aiclient.MustLoadAPIKey(true, false)
+		if err != nil {
+			fmt.Printf("Failed to load OpenAI API key: %s\n", err)
 			return
 		}
+
+		//  Connect to the OpenAI Client with the given model
+		if model, ok := aiclient.IsOpenAIModel(*modelFlag); ok {
+			fmt.Printf("Starting client with OpenAI-%s\n", model)
+			client = aiclient.MustConnectOpenAI(model, float32(*temperatureFlag))
+		} else {
+			// Default to GPT-3.5 Turbo
+			fmt.Printf("Starting client with OpenAI-%s\n", aiclient.GPT35Turbo)
+			client = aiclient.MustConnectOpenAI(aiclient.GPT35Turbo, float32(*temperatureFlag))
+		}
 	} else if *aiFlag == "anyscale" {
+		err := aiclient.MustLoadAPIKey(false, true)
+		if err != nil {
+			fmt.Printf("Failed to load Anyscale API key: %s\n", err)
+			return
+		}
+
+		//  Connect to the Anyscale Client with the given model
 		if model, ok := aiclient.IsAnyscaleModel(*modelFlag); ok {
-			fmt.Printf("Starting conversation with Anyscale-%s\n", model)
-			err := aiclient.MustLoadAPIKey(false, true)
-			if err != nil {
-				fmt.Printf("Failed to load Anyscale API key: %s\n", err)
-				return
-			}
+			fmt.Printf("Starting client with Anyscale-%s\n", model)
 			client = aiclient.MustConnectAnyscale(model, float32(*temperatureFlag))
 		} else {
-			fmt.Println(fmt.Sprintf("Invalid Anyscale model: %s provided, please provide a valid model", *modelFlag))
-			return
+			// Default to Mistral 7B Instruct
+			fmt.Printf("Starting client with Anyscale-%s\n", aiclient.Mistral7BInstruct)
+			client = aiclient.MustConnectAnyscale(aiclient.Mistral7BInstruct, float32(*temperatureFlag))
 		}
 	} else {
 		fmt.Println(fmt.Sprintf("Invalid AI provider: %s provided, select either anyscale or openai", *aiFlag))

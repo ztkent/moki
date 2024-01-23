@@ -3,6 +3,8 @@ package aiclient
 type AnyscaleModel string
 type OpenAIModel string
 
+// TODO: Support the rest of the models
+
 const (
 	Mistral7BInstruct   AnyscaleModel = "mistralai/Mistral-7B-Instruct-v0.1"
 	Llama27bChat        AnyscaleModel = "meta-llama/Llama-2-7b-chat-hf"
