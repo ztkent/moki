@@ -5,7 +5,7 @@ A GPT assistant that helps with command-line tasks like finding files, installin
 
 - Install bashgpt:  
   ```bash
-  go install github.com/Ztkent/bashgpt/cmd/bashgpt
+  go install github.com/Ztkent/bash-gpt/cmd/bashgpt
   ```
   
 - Set your API key as an environment variable:
