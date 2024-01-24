@@ -1,7 +1,7 @@
 # bashgpt
 A GPT assistant that helps with command-line tasks like finding files, installing packages, and git.
 
-### Usage
+## Usage
 
 - Install bashgpt:  
   ```bash
@@ -20,6 +20,7 @@ A GPT assistant that helps with command-line tasks like finding files, installin
   bashgpt [your message]
 
   # Start a conversation with the assistant
+  bashgpt -c
   bashgpt -llm=openai -c -max-messages=250 -max-tokens=1000 -t=0.5
   ```
 
@@ -54,19 +55,19 @@ Model Options:
 By default the assistant will use the Anyscale API. To use OpenAI, run the assistant with a flag. 
 
 ```bash
-bashgpt -llm openai
-bashgpt -llm anyscale 
+bashgpt -llm=openai
+bashgpt -llm=anyscale 
 ```
 
 #### Model
 Depending on the LLM Provider selected, different models are available.  
 By default the Anyscale API uses `CodeLlama-34b`, and OpenAI uses `gpt-3.5-turbo`.
 ```bash
-bashgpt -m m8x7b
+bashgpt -m=m8x7b
 ```
 
 #### Conversation
-The assistant can be used in a conversational mode.  
+The assistant can be used in conversation mode.  
 This allows the assistant to remember previous messages and use them to generate more in-depth responses.
 ```bash
 bashgpt -c
@@ -75,18 +76,18 @@ bashgpt -c
 #### Conversation Context
 Larger conversations require more tokens, by default the conversation context is limited to 100 messages.  
 ```bash
-bashgpt -max-messages 250
+bashgpt -max-messages=250
 ```
 
 #### Token Limit
 Tokens cost money, by default the assistant will generate as many tokens as it needs for the converation.
 ```bash
-bashgpt -max-tokens 10000
+bashgpt -max-tokens=10000
 ```
 
 #### Temperature
 The temperature of the LLM response is a measure of randomness. Adjust this value to taste.
 Temperature is a float between 0 and 1. By default the temperature is 0.2
 ```bash
-bashgpt -temperature 0.5
+bashgpt -t=0.5
 ```
