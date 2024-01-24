@@ -46,8 +46,8 @@ Model Options:
     - mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
     - meta-llama/Llama-2-7b-chat-hf, aka: l7b
     - meta-llama/Llama-2-13b-chat-hf, aka: l13b
-		- meta-llama/Llama-2-70b-chat-hf, aka: l70b
-		- codellama/CodeLlama-34b-Instruct-hf, aka: cl34b
+    - meta-llama/Llama-2-70b-chat-hf, aka: l70b
+    - codellama/CodeLlama-34b-Instruct-hf, aka: cl34b
 ```
 
 #### API Provider
