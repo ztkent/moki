@@ -126,9 +126,9 @@ Model Options:
 			log.Debug().Msg(fmt.Sprintf("Starting client with Anyscale-%s\n", model))
 			client = aiclient.MustConnectAnyscale(model, float32(*temperatureFlag))
 		} else {
-			// Default to Mistral 7B Instruct
-			log.Debug().Msg(fmt.Sprintf("Starting client with Anyscale-%s\n", aiclient.Mistral7BInstruct))
-			client = aiclient.MustConnectAnyscale(aiclient.Mistral7BInstruct, float32(*temperatureFlag))
+			// Default to CodeLlama
+			log.Debug().Msg(fmt.Sprintf("Starting client with Anyscale-%s\n", aiclient.CodeLlama34b))
+			client = aiclient.MustConnectAnyscale(aiclient.CodeLlama34b, float32(*temperatureFlag))
 		}
 	} else {
 		fmt.Println(fmt.Sprintf("Invalid AI provider: %s provided, select either anyscale or openai", *aiFlag))
@@ -145,6 +145,7 @@ Model Options:
 		return
 	}
 
+	// Require an input
 	if len(flag.Args()) == 0 {
 		fmt.Println("Please provide a question to ask BashGPT")
 		return
