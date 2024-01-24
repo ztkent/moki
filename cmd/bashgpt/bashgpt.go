@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Ztkent/bash-gpt/cmd/bashgpt/prompt"
+	"github.com/Ztkent/bash-gpt/internal/prompts"
 	"github.com/Ztkent/bash-gpt/internal/tools"
 	"github.com/Ztkent/bash-gpt/pkg/aiclient"
 	"github.com/rs/zerolog"
@@ -135,7 +135,7 @@ Model Options:
 		return
 	}
 
-	conv := aiclient.NewConversation(prompt.BashGPTPrompt, *maxMessagesFlag, *maxTokensFlag)
+	conv := aiclient.NewConversation(prompts.BashGPTPrompt, *maxMessagesFlag, *maxTokensFlag)
 	if *convFlag {
 		// Start a conversation with the BashGPT prompt
 		err := tools.StartConversationCLI(client, conv)
