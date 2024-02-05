@@ -1,11 +1,13 @@
-# bashgpt
-A GPT assistant that helps with command-line tasks like finding files, installing packages, and git.
+# BashGPT
+A GPT assistant for the command line.  
+Tuned to assist with developer tasks like finding files, installing packages, and git.
+
 
 ## Usage
 
 - Install bashgpt:  
   ```bash
-  go install github.com/Ztkent/bash-gpt/cmd/bashgpt
+  go install github.com/Ztkent/bash-gpt/cmd/bashgpt@latest
   ```
   
 - Set your API key as an environment variable:
@@ -23,6 +25,29 @@ A GPT assistant that helps with command-line tasks like finding files, installin
   bashgpt -c
   bashgpt -llm=openai -c -max-messages=250 -max-tokens=1000 -t=0.5
   ```
+
+## Examples
+``` 
+bashgpt install Python 3.9 on Ubuntu
+- sudo apt update && sudo apt install python3.9
+
+bashgpt given a text file, wrap each line in quotes. format it for display
+- sed 's/.*/"&"/' file.txt
+
+bashgpt given a text file, wrap each line in quotes. format it for display with python
+- with open('file.txt', 'r') as f:
+  lines = f.readlines()
+  lines = ['"{}"'.format(line.strip()) for line in lines]
+  print('\n'.join(lines))
+
+bashgpt update git email and username
+- git config --global user.email "youremail@example.com"
+  git config --global user.name "Your Name"
+
+bashgpt git re-edit a specific commit
+- git commit --amend
+```
+
 
 ### Options
 - There are two options for the API provider:  
@@ -62,7 +87,7 @@ bashgpt -llm=anyscale
 
 #### Model
 Depending on the LLM Provider selected, different models are available.  
-By default the Anyscale API uses `CodeLlama-34b`, and OpenAI uses `gpt-3.5-turbo`.
+By default the Anyscale API uses `Mistral-8x7b`, and OpenAI uses `gpt-3.5-turbo`.
 ```bash
 bashgpt -m=m8x7b
 ```
