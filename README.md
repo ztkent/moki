@@ -1,5 +1,6 @@
 # bashgpt
-A GPT assistant that helps with command-line tasks like finding files, installing packages, and git.
+A GPT assistant for the command line.  
+Tuned to assist with developer tasks like finding files, installing packages, and git.
 
 ## Usage
 
@@ -62,7 +63,7 @@ bashgpt -llm=anyscale
 
 #### Model
 Depending on the LLM Provider selected, different models are available.  
-By default the Anyscale API uses `CodeLlama-34b`, and OpenAI uses `gpt-3.5-turbo`.
+By default the Anyscale API uses `Mistral-8x7b`, and OpenAI uses `gpt-3.5-turbo`.
 ```bash
 bashgpt -m=m8x7b
 ```
