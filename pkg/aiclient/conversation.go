@@ -56,3 +56,17 @@ func (c *Conversation) Append(m openai.ChatCompletionMessage) error {
 	c.Messages = append(c.Messages, m)
 	return nil
 }
+
+func (c *Conversation) SeedConversation(requestResponseMap map[string]string) {
+	// Seed the conversation with some example prompts and responses
+	for user, response := range requestResponseMap {
+		c.Append(openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: user,
+		})
+		c.Append(openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleAssistant,
+			Content: response,
+		})
+	}
+}

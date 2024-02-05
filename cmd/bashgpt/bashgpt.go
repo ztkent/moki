@@ -47,7 +47,7 @@ func main() {
 	debugFlag := flag.Bool("d", false, "Show debug logs")
 	convFlag := flag.Bool("c", false, "Start a conversation with BashGPT")
 	aiFlag := flag.String("llm", "anyscale", "Selct the LLM provider, either OpenAI or Anyscale")
-	modelFlag := flag.String("m", "cl70b", "Set the model to use for the LLM response")
+	modelFlag := flag.String("m", "m8x7b", "Set the model to use for the LLM response")
 	temperatureFlag := flag.Float64("t", 0.2, "Set the temperature for the LLM response")
 	maxMessagesFlag := flag.Int("max-messages", 0, "Set the maximum conversation context length")
 	maxTokensFlag := flag.Int("max-tokens", 1000, "Set the maximum number of tokens to generate per response")
@@ -138,6 +138,15 @@ Model Options:
 	}
 
 	conv := aiclient.NewConversation(prompts.BashGPTPrompt, *maxMessagesFlag, *maxTokensFlag)
+	// Seed the conversation with some initial context
+	conv.SeedConversation(map[string]string{
+		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
+		"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",
+		"list all files in a directory":                        "ls -la",
+		"ammend specific old commit with commit sha":           "git rebase -i <commit-sha>",
+		"run a specific command on a specific day of the week": "echo \"0 0 * * <day-of-week> <command>\" | sudo tee -a /etc/crontab",
+	})
+
 	if *convFlag {
 		// Start a conversation with the BashGPT prompt
 		err := tools.StartConversationCLI(client, conv)
