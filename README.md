@@ -49,6 +49,7 @@ Model Options:
     - meta-llama/Llama-2-13b-chat-hf, aka: l13b
     - meta-llama/Llama-2-70b-chat-hf, aka: l70b
     - codellama/CodeLlama-34b-Instruct-hf, aka: cl34b
+    - codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
 ```
 
 #### API Provider

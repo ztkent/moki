@@ -38,6 +38,7 @@ Flags:
 	  - meta-llama/Llama-2-13b-chat-hf, aka: l13b
 	  - meta-llama/Llama-2-70b-chat-hf, aka: l70b
 	  - codellama/CodeLlama-34b-Instruct-hf, aka: cl34b
+	  - codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
 .*/
 
 func main() {
@@ -46,7 +47,7 @@ func main() {
 	debugFlag := flag.Bool("d", false, "Show debug logs")
 	convFlag := flag.Bool("c", false, "Start a conversation with BashGPT")
 	aiFlag := flag.String("llm", "anyscale", "Selct the LLM provider, either OpenAI or Anyscale")
-	modelFlag := flag.String("m", "cl34b", "Set the model to use for the LLM response")
+	modelFlag := flag.String("m", "cl70b", "Set the model to use for the LLM response")
 	temperatureFlag := flag.Float64("t", 0.2, "Set the temperature for the LLM response")
 	maxMessagesFlag := flag.Int("max-messages", 0, "Set the maximum conversation context length")
 	maxTokensFlag := flag.Int("max-tokens", 1000, "Set the maximum number of tokens to generate per response")
@@ -93,6 +94,7 @@ Model Options:
 		- meta-llama/Llama-2-13b-chat-hf, aka: l13b
 		- meta-llama/Llama-2-70b-chat-hf, aka: l70b
 		- codellama/CodeLlama-34b-Instruct-hf, aka: cl34b
+		- codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
 			`)
 		return
 	}

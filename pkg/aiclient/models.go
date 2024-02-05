@@ -10,6 +10,7 @@ const (
 	Llama270bChat       AnyscaleModel = "meta-llama/Llama-2-70b-chat-hf"
 	Mixtral8x7BInstruct AnyscaleModel = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 	CodeLlama34b        AnyscaleModel = "codellama/CodeLlama-34b-Instruct-hf"
+	CodeLlama70b        AnyscaleModel = "codellama/CodeLlama-70b-Instruct-hf"
 	GPT35Turbo          OpenAIModel   = "gpt-3.5-turbo"
 )
 
@@ -35,6 +36,8 @@ func IsAnyscaleModel(name string) (AnyscaleModel, bool) {
 		return Llama270bChat, true
 	case CodeLlama34b.String(), "cl34b":
 		return CodeLlama34b, true
+	case CodeLlama70b.String(), "cl70b":
+		return CodeLlama70b, true
 	default:
 		return "", false
 	}
