@@ -2,6 +2,7 @@
 A GPT assistant for the command line.  
 Tuned to assist with developer tasks like finding files, installing packages, and git.
 
+
 ## Usage
 
 - Install bashgpt:  
@@ -24,6 +25,29 @@ Tuned to assist with developer tasks like finding files, installing packages, an
   bashgpt -c
   bashgpt -llm=openai -c -max-messages=250 -max-tokens=1000 -t=0.5
   ```
+
+## Examples
+``` bash
+bashgpt given a text file, wrap each line in quotes. format it for display **
+- sed 's/.*/"&"/' file.txt
+
+bashgpt install Python 3.9 on Ubuntu
+- sudo apt update && sudo apt install python3.9
+
+bashgpt given a text file, wrap each line in quotes. format it for display with python
+- with open('file.txt', 'r') as f:
+  lines = f.readlines()
+  lines = ['"{}"'.format(line.strip()) for line in lines]
+  print('\n'.join(lines))
+
+bashgpt update git email and username
+- git config --global user.email "youremail@example.com"
+  git config --global user.name "Your Name"
+
+bashgpt git re-edit a specific commit
+- git commit --amend
+```
+
 
 ### Options
 - There are two options for the API provider:  
