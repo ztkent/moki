@@ -27,8 +27,8 @@ Tuned to assist with developer tasks like finding files, installing packages, an
   ```
 
 ## Examples
-``` bash
-bashgpt given a text file, wrap each line in quotes. format it for display **
+``` 
+bashgpt given a text file, wrap each line in quotes. format it for display
 - sed 's/.*/"&"/' file.txt
 
 bashgpt install Python 3.9 on Ubuntu
