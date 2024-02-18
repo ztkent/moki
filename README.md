@@ -28,11 +28,11 @@ Tuned to assist with developer tasks like finding files, installing packages, an
 
 ## Examples
 ``` 
-bashgpt given a text file, wrap each line in quotes. format it for display
-- sed 's/.*/"&"/' file.txt
-
 bashgpt install Python 3.9 on Ubuntu
 - sudo apt update && sudo apt install python3.9
+
+bashgpt given a text file, wrap each line in quotes. format it for display
+- sed 's/.*/"&"/' file.txt
 
 bashgpt given a text file, wrap each line in quotes. format it for display with python
 - with open('file.txt', 'r') as f:
