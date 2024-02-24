@@ -7,7 +7,7 @@ Tuned to assist with developer tasks like finding files, installing packages, an
 
 - Install bashgpt:  
   ```bash
-  go install github.com/Ztkent/bash-gpt/cmd/bashgpt
+  go install github.com/Ztkent/bash-gpt/cmd/bashgpt@latest
   ```
   
 - Set your API key as an environment variable:
