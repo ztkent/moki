@@ -8,9 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog/log"
-
 	aiclient "github.com/Ztkent/go-openai-extended"
+	"github.com/rs/zerolog/log"
 )
 
 func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) error {
