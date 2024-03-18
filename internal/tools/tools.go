@@ -10,7 +10,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/Ztkent/bash-gpt/pkg/aiclient"
+	aiclient "github.com/Ztkent/go-openai-extended"
 )
 
 func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) error {

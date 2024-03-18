@@ -7,7 +7,7 @@ import (
 
 	"github.com/Ztkent/bash-gpt/internal/prompts"
 	"github.com/Ztkent/bash-gpt/internal/tools"
-	"github.com/Ztkent/bash-gpt/pkg/aiclient"
+	aiclient "github.com/Ztkent/go-openai-extended"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
