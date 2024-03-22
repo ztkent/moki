@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Ztkent/bash-gpt/internal/prompts"
 	aiclient "github.com/Ztkent/go-openai-extended"
 	"github.com/rs/zerolog/log"
 )
@@ -24,17 +25,16 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 	defer cancel()
 
 	// Start the chat with a fresh conversation, and get the system greeting
-	introChat, err := client.SendCompletionRequest(oneMin, conv, "")
+	introChat, err := client.SendCompletionRequest(oneMin, aiclient.NewConversation(prompts.BashGPTPrompt, 0, 0), "We're starting a conversation. Introduce yourself.")
 	if err != nil {
 		return err
 	}
-	fmt.Println("Intro: " + introChat)
+	fmt.Println("BashGPT: " + introChat)
 
 	// Lets start a conversation with the user via CLI
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("Request: ")
-
 		// Ask for the user's input
 		userInput, _ := reader.ReadString('\n')
 		userInput = strings.TrimSpace(userInput)
@@ -50,12 +50,18 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 			continue
 		}
 
+		// Check if the user provided a message
+		if len(userInput) == 0 {
+			fmt.Println("Please provide a message to continue the conversation.")
+			continue
+		}
+
 		// Send the user's input to the LLM 🤖, wait at most 1 minute.
 		oneMin, cancel = context.WithTimeout(thirtyMin, time.Minute*1)
 		defer cancel()
 		responseChan, errChan := make(chan string), make(chan error)
 		go client.SendStreamRequest(oneMin, conv, userInput, responseChan, errChan)
-		fmt.Print("Response: ")
+		fmt.Print("BashGPT: ")
 
 		// Read the response from the channel as it is streamed
 		done := false
