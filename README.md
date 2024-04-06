@@ -79,7 +79,7 @@ Model Options:
 ```
 
 #### API Provider
-By default the assistant will use the Anyscale API. To use OpenAI, run the assistant with a flag. 
+By default the assistant will use OpenAI. To use Anyscale, run the assistant with a flag. 
 
 ```bash
 bashgpt -llm=openai
@@ -88,7 +88,7 @@ bashgpt -llm=anyscale
 
 #### Model
 Depending on the LLM Provider selected, different models are available.  
-By default the Anyscale API uses `Mistral-8x7b`, and OpenAI uses `gpt-3.5-turbo`.
+By default the Anyscale API uses `Mistral-8x7b`, and OpenAI uses `gpt-4-turbo-preview`.
 ```bash
 bashgpt -m=m8x7b
 ```
