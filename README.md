@@ -66,7 +66,8 @@ Flags:
 
 Model Options:
   - OpenAI:
-    - gpt-3.5-turbo, aka: turbo
+    - gpt-3.5-turbo, aka: turbo3
+    - gpt-4-turbo-preview, aka: turbo
   - Anyscale:
     - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
     - mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b

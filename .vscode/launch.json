@@ -6,7 +6,7 @@
       "type": "go",
       "request": "launch",
       "program": "${workspaceFolder}/cmd/bashgpt/bashgpt.go",
-      "args": ["-m=m8x7b", "give me some python code to classify images"],
+      "args": ["-llm=openai", "give me some python code to classify images"],
       "envFile": "${workspaceFolder}/.env",
     },
     {
