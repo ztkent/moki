@@ -1,5 +1,5 @@
 # BashGPT
-A GPT assistant for the command line.  
+An assistant for the command line.  
 Tuned to assist with developer tasks like finding files, installing packages, and git.
 
 
