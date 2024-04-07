@@ -67,7 +67,7 @@ func main() {
 	logger.WithFields(logrus.Fields{
 		"Model":    *modelFlag,
 		"Provider": *aiFlag,
-	}).Info("Starting AI Client")
+	}).Debug("Starting AI Client")
 
 	// Seed the conversation with some initial context to improve the AI responses
 	conv := aiclient.NewConversation(prompts.MokiPrompt, *maxMessagesFlag, *maxTokensFlag, *ragFlag)
