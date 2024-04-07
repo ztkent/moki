@@ -3,20 +3,14 @@ package tools
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
 	aiclient "github.com/Ztkent/go-openai-extended"
 	"github.com/Ztkent/moki/internal/prompts"
 	"github.com/rs/zerolog/log"
-	"github.com/sashabaranov/go-openai"
 )
 
 var exitCommands = []string{"exit", "quit", "bye", ":q", "end", "q"}
@@ -59,7 +53,7 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 
 		// Check if the user's input contains a resource command
 		// If so, manage the resource and add the result to the conversation
-		userInput = ManageRAG(userInput, client, conv)
+		userInput = conv.ManageRAG(userInput)
 		// Check if the user provided a message
 		if len(userInput) == 0 {
 			fmt.Println("Please provide a message to continue the conversation.")
@@ -95,31 +89,7 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 	return nil
 }
 
-func ManageRAG(userInput string, client *aiclient.Client, conv *aiclient.Conversation) string {
-	var resourceCommands = []string{"url", "file"}
-	resourcesFound := []string{}
-	for _, cmd := range resourceCommands {
-		re := regexp.MustCompile(fmt.Sprintf(`\-%s:(.*)`, cmd))
-		matches := re.FindAllStringSubmatch(userInput, -1)
-		for _, match := range matches {
-			if len(match) > 1 {
-				resource := strings.TrimSpace(match[1])
-				resourcesFound = append(resourcesFound, cmd+":"+resource)
-				GenerateResource(client, conv, resource)
-				userInput = strings.Replace(userInput, "-"+cmd+":"+resource, "", -1)
-			}
-		}
-	}
-
-	if len(resourcesFound) > 0 {
-		fmt.Println("Resources found: " + strings.Join(resourcesFound, ", "))
-		fmt.Println("User input: " + userInput)
-	}
-	return userInput
-}
-
-// Log the results of a fresh chat stream
-func LogNewChatStream(client *aiclient.Client, conv *aiclient.Conversation, chatPrompt string) error {
+func LogChatStream(client *aiclient.Client, conv *aiclient.Conversation, chatPrompt string) error {
 	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 
@@ -129,7 +99,7 @@ func LogNewChatStream(client *aiclient.Client, conv *aiclient.Conversation, chat
 
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
-	userInput := ManageRAG(chatPrompt, client, conv)
+	userInput := conv.ManageRAG(chatPrompt)
 	// Check if the user provided a message
 	if len(userInput) == 0 {
 		return fmt.Errorf("Please provide a message to continue the conversation.")
@@ -150,95 +120,5 @@ func LogNewChatStream(client *aiclient.Client, conv *aiclient.Conversation, chat
 			fmt.Println()
 			return err
 		}
-	}
-}
-
-// Fetch and add a resource to the conversation
-// There is a LIMIT to the number of tokens.
-// Cant just send the whole page
-func GenerateResource(client *aiclient.Client, conv *aiclient.Conversation, path string) {
-	// Determine if the path is a valid url
-	url, err := url.Parse(path)
-	if err == nil && url.Scheme != "" && url.Host != "" {
-		// Fetch the URL
-		fmt.Println("Downloading file from URL: " + path)
-		resp, err := http.Get(path)
-		if err != nil {
-			fmt.Println("Error fetching URL: " + err.Error())
-			return
-		}
-		defer resp.Body.Close()
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println("Error reading response body: " + err.Error())
-			return
-		}
-
-		// handle the html content
-		html := string(body)
-		// Build the System Message
-		messageParts := make([]openai.ChatMessagePart, 0)
-		messageParts = append(messageParts, openai.ChatMessagePart{
-			Type: openai.ChatMessagePartTypeText,
-			Text: "URL: " + path,
-		})
-		messageParts = append(messageParts, openai.ChatMessagePart{
-			Type: openai.ChatMessagePartTypeText,
-			Text: "Status: " + resp.Status,
-		})
-		messageParts = append(messageParts, openai.ChatMessagePart{
-			Type: openai.ChatMessagePartTypeText,
-			Text: "Content: " + html,
-		})
-		// Set the resource
-		conv.Append(openai.ChatCompletionMessage{
-			Name:         url.String(),
-			Role:         openai.ChatMessageRoleSystem,
-			MultiContent: messageParts,
-			// Content:      html,
-		})
-	} else if _, err := os.Stat(path); !os.IsNotExist(err) {
-		fmt.Println("Uploading file from path: " + path)
-		// Open the file
-		file, err := os.Open(path)
-		if err != nil {
-			fmt.Println("Error opening file: " + err.Error())
-			return
-		}
-		// read the contents of the file
-		fileInfo, err := file.Stat()
-		if err != nil {
-			fmt.Println("Error reading file: " + err.Error())
-			return
-		}
-		fileSize := fileInfo.Size()
-		fileContents := make([]byte, fileSize)
-		_, err = file.Read(fileContents)
-		if err != nil {
-			fmt.Println("Error reading file: " + err.Error())
-			return
-		}
-		// Close the file
-		err = file.Close()
-		if err != nil {
-			fmt.Println("Error closing file: " + err.Error())
-			return
-		}
-		// add the content, and path of the url to a json object
-		resJson, err := json.Marshal(map[string]interface{}{
-			"path":     path,
-			"contents": string(fileContents),
-		})
-		if err != nil {
-			fmt.Println("Error reading file: " + err.Error())
-			return
-		}
-		conv.Append(openai.ChatCompletionMessage{
-			Name:    path,
-			Role:    openai.ChatMessageRoleSystem,
-			Content: string(resJson),
-		})
-	} else {
-		fmt.Println("Invalid path: " + path)
 	}
 }
