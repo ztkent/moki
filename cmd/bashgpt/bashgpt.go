@@ -5,22 +5,22 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Ztkent/bash-gpt/internal/prompts"
-	"github.com/Ztkent/bash-gpt/internal/tools"
 	aiclient "github.com/Ztkent/go-openai-extended"
+	"github.com/Ztkent/moki/internal/prompts"
+	"github.com/Ztkent/moki/internal/tools"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 /*
-Command-line interface for a BashGPT conversation.
+Command-line interface for a Moki conversation.
 
 Usage:
-  bashgpt [your question]
+  moki [your question]
 
 Flags:
   -h:                        Show this message
-  -c:                        Start a conversation with BashGPT
+  -c:                        Start a conversation with Moki
   -ai [openai, anyscale]:    Set the LLM Provider
   -m [string]:               Set the model to use for the LLM response
   -max-messages [int]:       Set the maximum conversation context length
@@ -45,12 +45,13 @@ func main() {
 	// Define the flags
 	helpFlag := flag.Bool("h", false, "Show this message")
 	debugFlag := flag.Bool("d", false, "Show debug logs")
-	convFlag := flag.Bool("c", false, "Start a conversation with BashGPT")
+	convFlag := flag.Bool("c", false, "Start a conversation with Moki")
 	aiFlag := flag.String("llm", "openai", "Selct the LLM provider, either OpenAI or Anyscale")
-	modelFlag := flag.String("m", "turbo", "Set the model to use for the LLM response")
+	modelFlag := flag.String("m", "turbo35", "Set the model to use for the LLM response")
 	temperatureFlag := flag.Float64("t", 0.2, "Set the temperature for the LLM response")
 	maxMessagesFlag := flag.Int("max-messages", 0, "Set the maximum conversation context length")
 	maxTokensFlag := flag.Int("max-tokens", 1000, "Set the maximum number of tokens to generate per response")
+	ragFlag := flag.Bool("r", false, "Enable RAG functionality")
 
 	// Parse the flags
 	flag.Parse()
@@ -67,11 +68,11 @@ func main() {
 		fmt.Println(
 			`
 Usage:
-	bashgpt [your question]
+	moki [your question]
 
 Flags:
 	-h:                        Show this message
-	-c:                        Start a conversation with BashGPT
+	-c:                        Start a conversation with Moki
 	-llm [openai, anyscale]:   Set the LLM Provider
 	-m [string]:               Set the model to use for the LLM response
 	-max-messages [int]:       Set the maximum conversation context length
@@ -137,7 +138,7 @@ Model Options:
 		return
 	}
 
-	conv := aiclient.NewConversation(prompts.BashGPTPrompt, *maxMessagesFlag, *maxTokensFlag)
+	conv := aiclient.NewConversation(prompts.BashGPTPrompt, *maxMessagesFlag, *maxTokensFlag, *ragFlag)
 	// Seed the conversation with some initial context
 	conv.SeedConversation(map[string]string{
 		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
@@ -148,7 +149,7 @@ Model Options:
 	})
 
 	if *convFlag {
-		// Start a conversation with the BashGPT prompt
+		// Start a conversation with the Moki prompt
 		err := tools.StartConversationCLI(client, conv)
 		if err != nil {
 			fmt.Printf("Failed to start conversation: %s\n", err)
@@ -158,7 +159,7 @@ Model Options:
 
 	// Require an input
 	if len(flag.Args()) == 0 {
-		fmt.Println("Please provide a question to ask BashGPT")
+		fmt.Println("Please provide a question to ask Moki")
 		return
 	}
 

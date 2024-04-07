@@ -1,7 +1,7 @@
 .PHONY: build test clean
 
 # The name of the output binary
-BINARY_NAME=bashgpt
+BINARY_NAME=moki
 
 # The Go path
 GOPATH=$(shell go env GOPATH)
@@ -16,10 +16,10 @@ GOMODVENDOR=go mod vendor
 GOINSTALL=go install
 
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/bashgpt
+	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/moki
 
 install:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/bashgpt
-	mv bashgpt $(GOPATH)/bin
+	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/moki
+	mv moki $(GOPATH)/bin
 
 all: clean deps test build

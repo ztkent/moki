@@ -1,6 +1,8 @@
-module github.com/Ztkent/bash-gpt
+module github.com/Ztkent/moki
 
 go 1.22.0
+
+replace github.com/Ztkent/go-openai-extended => /Users/zacharykent/code/ztkent/go-openai-extended
 
 require (
 	github.com/Ztkent/go-openai-extended v0.1.0
