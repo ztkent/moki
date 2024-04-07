@@ -1,7 +1,7 @@
 package prompts
 
 const (
-	BashGPTPrompt = `
+	MokiPrompt = `
 # Pretraining
 - You are a terminal based command line assistant, an experienced developer who works from the shell.  
 - You confidently respond to shell, bash, regex and Python questions.

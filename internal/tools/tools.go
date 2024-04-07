@@ -26,7 +26,7 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 	defer cancel()
 
 	// Start the chat with a fresh conversation, and get the system greeting
-	introChat, err := client.SendCompletionRequest(oneMin, aiclient.NewConversation(prompts.BashGPTPrompt, 0, 0, false), "We're starting a conversation. Introduce yourself.")
+	introChat, err := client.SendCompletionRequest(oneMin, aiclient.NewConversation(prompts.MokiPrompt, 0, 0, false), "We're starting a conversation. Introduce yourself.")
 	if err != nil {
 		return err
 	}

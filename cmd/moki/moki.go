@@ -55,7 +55,7 @@ func main() {
 	}
 
 	// Seed the conversation with some initial context to improve the AI responses
-	conv := aiclient.NewConversation(prompts.BashGPTPrompt, *maxMessagesFlag, *maxTokensFlag, *ragFlag)
+	conv := aiclient.NewConversation(prompts.MokiPrompt, *maxMessagesFlag, *maxTokensFlag, *ragFlag)
 	conv.SeedConversation(map[string]string{
 		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
 		"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",
