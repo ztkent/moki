@@ -8,15 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Ztkent/bash-gpt/internal/prompts"
 	aiclient "github.com/Ztkent/go-openai-extended"
+	"github.com/Ztkent/moki/internal/prompts"
 	"github.com/rs/zerolog/log"
 )
 
-func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) error {
-	var exitCommands = []string{"exit", "quit", "bye", ":q", "end", "q"}
-	var helpCommands = []string{"help", "?"}
+var exitCommands = []string{"exit", "quit", "bye", ":q", "end", "q"}
+var helpCommands = []string{"help", "?"}
 
+// Start a conversation with Moki via the CLI
+func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) error {
 	// This is the maximum conversation time
 	thirtyMin, cancel0 := context.WithTimeout(context.Background(), time.Minute*30)
 	defer cancel0()
@@ -25,11 +26,11 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 	defer cancel()
 
 	// Start the chat with a fresh conversation, and get the system greeting
-	introChat, err := client.SendCompletionRequest(oneMin, aiclient.NewConversation(prompts.BashGPTPrompt, 0, 0), "We're starting a conversation. Introduce yourself.")
+	introChat, err := client.SendCompletionRequest(oneMin, aiclient.NewConversation(prompts.BashGPTPrompt, 0, 0, false), "We're starting a conversation. Introduce yourself.")
 	if err != nil {
 		return err
 	}
-	fmt.Println("BashGPT: " + introChat)
+	fmt.Println("Moki: " + introChat)
 
 	// Lets start a conversation with the user via CLI
 	reader := bufio.NewReader(os.Stdin)
@@ -44,12 +45,15 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 			break
 		} else if strings.Contains(strings.Join(helpCommands, "|"), strings.ToLower(userInput)) {
 			fmt.Println("--------------------------------------------------")
-			fmt.Println("bashgpt: ")
+			fmt.Println("moki: ")
 			fmt.Println("    Type 'exit', 'quit', or 'bye' to end the conversation.")
 			fmt.Println("    Type your message to continue the conversation.")
 			continue
 		}
 
+		// Check if the user's input contains a resource command
+		// If so, manage the resource and add the result to the conversation
+		userInput = conv.ManageRAG(userInput)
 		// Check if the user provided a message
 		if len(userInput) == 0 {
 			fmt.Println("Please provide a message to continue the conversation.")
@@ -61,7 +65,7 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 		defer cancel()
 		responseChan, errChan := make(chan string), make(chan error)
 		go client.SendStreamRequest(oneMin, conv, userInput, responseChan, errChan)
-		fmt.Print("BashGPT: ")
+		fmt.Print("Moki: ")
 
 		// Read the response from the channel as it is streamed
 		done := false
@@ -85,14 +89,22 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 	return nil
 }
 
-// Log the results of a fresh chat stream
-func LogNewChatStream(client *aiclient.Client, conv *aiclient.Conversation, chatPrompt string) error {
+func LogChatStream(client *aiclient.Client, conv *aiclient.Conversation, chatPrompt string) error {
 	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 
 	// Start the chat with a fresh conversation, and the users prompt
 	responseChan, errChan := make(chan string), make(chan error)
 	log.Debug().Msg(fmt.Sprintf("prompt: " + chatPrompt))
+
+	// Check if the user's input contains a resource command
+	// If so, manage the resource and add the result to the conversation
+	userInput := conv.ManageRAG(chatPrompt)
+	// Check if the user provided a message
+	if len(userInput) == 0 {
+		return fmt.Errorf("Please provide a message to continue the conversation.")
+	}
+
 	go client.SendStreamRequest(oneMin, conv, chatPrompt, responseChan, errChan)
 	// Read the response from the channel as it is streamed
 	for {
