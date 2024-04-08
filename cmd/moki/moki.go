@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	aiclient "github.com/Ztkent/go-openai-extended"
+	"github.com/Ztkent/moki/internal/conversation"
 	"github.com/Ztkent/moki/internal/prompts"
+	"github.com/Ztkent/moki/internal/request"
 	"github.com/Ztkent/moki/internal/tools"
 	"github.com/sirupsen/logrus"
 )
@@ -81,7 +83,7 @@ func main() {
 
 	if *convFlag {
 		// Start a conversation with Moki
-		err := tools.StartConversationCLI(client, conv)
+		err := conversation.StartConversationCLI(client, conv)
 		if err != nil {
 			logger.WithFields(logrus.Fields{
 				"error": err,
@@ -97,7 +99,7 @@ func main() {
 	}
 
 	// Respond with a single request to Moki
-	err = tools.LogChatStream(client, conv, strings.Join(flag.Args(), " "))
+	err = request.LogChatStream(client, conv, strings.Join(flag.Args(), " "))
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"error": err,
