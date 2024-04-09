@@ -1,11 +1,8 @@
 package conversation
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"os"
-	"strings"
 	"time"
 
 	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
@@ -28,6 +25,7 @@ func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) erro
 	ctx, cancel := context.WithTimeout(context.Background(), MaxConversationTime)
 	defer cancel()
 
+	tea.ClearScreen()
 	// Start the chat with a fresh conversation, and get the system greeting
 	introChat, err := GetIntroduction(client, ctx)
 	if err != nil {
@@ -41,60 +39,24 @@ func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) erro
 
 // StartChat handles the conversation with the user
 func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversation) error {
-	reader := bufio.NewReader(os.Stdin)
-
 	for {
-		userInput := ""
-		fmt.Print("Request: ")
-		// Read the user's input character by character
-		for {
-			char, _, err := reader.ReadRune()
-			if err != nil {
-				return err
-			}
-
-			// Break the loop if the user hits enter
-			if char == '\n' || char == '\r' {
-				break
-			}
-
-			// Trigger resource selecting when the user types '@'
-			if char == '@' {
-				// Manage resource selection w/ bubbletea
-				m := resourceSelectionModel{resourceTypes: []string{"url", "file"}}
-				p := tea.NewProgram(m)
-				if m, err := p.Run(); err != nil {
-					return err
-				} else {
-					if !m.(resourceSelectionModel).selected {
-						continue
-					}
-				}
-
-				resourceType := m.resourceTypes[m.cursor]
-
-				// Prompt the user to enter the resource
-				fmt.Print("Enter the " + resourceType + ": ")
-				resource, _ := reader.ReadString('\n')
-				resource = strings.TrimSpace(resource)
-
-				// Add the resource to the user's input
-				userInput = userInput + " -" + resourceType + ":" + resource
-			} else {
-				userInput += string(char)
-			}
-
-			// Handle exit and help commands
-			if isExitCommand(strings.ToLower(userInput)) {
+		mokiModel := NewMokiModel()
+		p := tea.NewProgram(mokiModel)
+		if m, err := p.Run(); err != nil {
+			return err
+		} else if m == nil {
+			return fmt.Errorf("failed to continue the conversation.")
+		} else {
+			mokiModel = m.(MokiModel)
+			if mokiModel.quit {
+				fmt.Println("Goodbye!")
 				return nil
-			} else if isHelpCommand(strings.ToLower(userInput)) {
-				printHelpMessage()
-				break
 			}
 		}
+		fmt.Println(mokiModel.View())
 
 		// Handle user's message
-		err := handleUserMessage(client, conv, ctx, userInput)
+		err := HandleUserMessage(client, conv, ctx, mokiModel.textInput.Value())
 		if err != nil {
 			return err
 		}
@@ -115,7 +77,7 @@ func GetIntroduction(client *aiutil.Client, ctx context.Context) (string, error)
 }
 
 // handleUserMessage handles the user's message
-func handleUserMessage(client *aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
+func HandleUserMessage(client *aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
 	userInput = conv.ManageRAG(userInput)
@@ -178,49 +140,4 @@ func printHelpMessage() {
 	fmt.Println("moki: ")
 	fmt.Println("    Type 'exit', 'quit', or 'bye' to end the conversation.")
 	fmt.Println("    Type your message to continue the conversation.")
-}
-
-type resourceSelectionModel struct {
-	resourceTypes []string
-	cursor        int
-	selected      bool
-}
-
-func (m resourceSelectionModel) Init() tea.Cmd {
-	return nil
-}
-func (m resourceSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch key := msg.String(); key {
-		case "ctrl+c", "q", "\x03":
-			return m, tea.Quit
-		case "enter", "\r":
-			m.selected = true
-			return m, nil
-		case "esc", "\x1b":
-			return m, tea.Quit
-		case "down", "\x1b[B":
-			if m.cursor < len(m.resourceTypes)-1 {
-				m.cursor++
-			}
-		case "up", "\x1b[A":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		}
-	}
-	return m, nil
-}
-
-func (m resourceSelectionModel) View() string {
-	view := ""
-	for i, resourceType := range m.resourceTypes {
-		cursor := " "
-		if m.cursor == i {
-			cursor = ">"
-		}
-		view += fmt.Sprintf("%s %s\n", cursor, resourceType)
-	}
-	return view
 }
