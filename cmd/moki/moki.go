@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	aiclient "github.com/Ztkent/go-openai-extended"
+	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
 	"github.com/Ztkent/moki/internal/conversation"
 	"github.com/Ztkent/moki/internal/prompts"
 	"github.com/Ztkent/moki/internal/request"
@@ -72,7 +72,7 @@ func main() {
 	}).Debug("Starting AI Client")
 
 	// Seed the conversation with some initial context to improve the AI responses
-	conv := aiclient.NewConversation(prompts.MokiPrompt, *maxMessagesFlag, *maxTokensFlag, *ragFlag)
+	conv := aiutil.NewConversation(prompts.MokiPrompt, *maxMessagesFlag, *maxTokensFlag, *ragFlag)
 	conv.SeedConversation(map[string]string{
 		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
 		"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",

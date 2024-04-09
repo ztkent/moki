@@ -3,7 +3,7 @@ module github.com/Ztkent/moki
 go 1.22.0
 
 require (
-	github.com/Ztkent/go-openai-extended v0.2.1
+	github.com/Ztkent/ai-util v0.3.1
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/sirupsen/logrus v1.9.3
 )

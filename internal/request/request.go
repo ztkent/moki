@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	aiclient "github.com/Ztkent/go-openai-extended"
+	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
 )
 
-func LogChatStream(client *aiclient.Client, conv *aiclient.Conversation, chatPrompt string) error {
+func LogChatStream(client *aiutil.Client, conv *aiutil.Conversation, chatPrompt string) error {
 	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 

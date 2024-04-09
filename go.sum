@@ -1,7 +1,7 @@
 github.com/PuerkitoBio/goquery v1.9.1 h1:mTL6XjbJTZdpfL+Gwl5U2h1l9yEkJjhmlTeV9VPW7UI=
 github.com/PuerkitoBio/goquery v1.9.1/go.mod h1:cW1n6TmIMDoORQU5IU/P1T3tGFunOeXEpGP2WHRwkbY=
-github.com/Ztkent/go-openai-extended v0.2.1 h1:2AbHvfOmicn9m925/WezFkjuVUfiij10bJdasdto2Tc=
-github.com/Ztkent/go-openai-extended v0.2.1/go.mod h1:EhHdm3jTMpW1T91s4Pwv8dGayGA9PvzSdceYNqMTQ8s=
+github.com/Ztkent/ai-util v0.3.1 h1:ttFnMO9lcEIxq1k0bQflvROEn/g6iLIMvlv7DuON9oM=
+github.com/Ztkent/ai-util v0.3.1/go.mod h1:JsHjUSmGKG3EP2Rcu5wMiuyaDJx2jCUT0UZ3nbnvyY8=
 github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsViSLyss=
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=

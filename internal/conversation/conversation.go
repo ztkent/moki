@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	aiclient "github.com/Ztkent/go-openai-extended"
+	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
 	"github.com/Ztkent/moki/internal/prompts"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -23,7 +23,7 @@ var exitCommands = []string{"exit", "quit", "bye", ":q", "end", "q"}
 var helpCommands = []string{"help", "?"}
 
 // StartConversationCLI starts a conversation with Moki via the CLI
-func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) error {
+func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) error {
 	// Set the maximum conversation time
 	ctx, cancel := context.WithTimeout(context.Background(), MaxConversationTime)
 	defer cancel()
@@ -40,7 +40,7 @@ func StartConversationCLI(client *aiclient.Client, conv *aiclient.Conversation) 
 }
 
 // StartChat handles the conversation with the user
-func StartChat(ctx context.Context, client *aiclient.Client, conv *aiclient.Conversation) error {
+func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversation) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
@@ -102,11 +102,11 @@ func StartChat(ctx context.Context, client *aiclient.Client, conv *aiclient.Conv
 }
 
 // GetIntroduction sends the initial message to start the conversation
-func GetIntroduction(client *aiclient.Client, ctx context.Context) (string, error) {
+func GetIntroduction(client *aiutil.Client, ctx context.Context) (string, error) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, SingleRequestTime)
 	defer cancel()
 
-	introChat, err := client.SendCompletionRequest(ctxWithTimeout, aiclient.NewConversation(prompts.MokiPrompt, 0, 0, false), "We're starting a conversation. Introduce yourself.")
+	introChat, err := client.SendCompletionRequest(ctxWithTimeout, aiutil.NewConversation(prompts.MokiPrompt, 0, 0, false), "We're starting a conversation. Introduce yourself.")
 	if err != nil {
 		return "", err
 	}
@@ -115,7 +115,7 @@ func GetIntroduction(client *aiclient.Client, ctx context.Context) (string, erro
 }
 
 // handleUserMessage handles the user's message
-func handleUserMessage(client *aiclient.Client, conv *aiclient.Conversation, ctx context.Context, userInput string) error {
+func handleUserMessage(client *aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
 	userInput = conv.ManageRAG(userInput)

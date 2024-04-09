@@ -3,30 +3,30 @@ package tools
 import (
 	"fmt"
 
-	aiclient "github.com/Ztkent/go-openai-extended"
+	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
 )
 
-func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64) (*aiclient.Client, error) {
-	var client *aiclient.Client
+func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64) (*aiutil.Client, error) {
+	var client *aiutil.Client
 	if *aiFlag == "openai" {
-		err := aiclient.MustLoadAPIKey(true, false)
+		err := aiutil.MustLoadAPIKey(true, false)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load OpenAI API key: %s", err)
 		}
-		if model, ok := aiclient.IsOpenAIModel(*modelFlag); ok {
-			client = aiclient.MustConnectOpenAI(model, float32(*temperatureFlag))
+		if model, ok := aiutil.IsOpenAIModel(*modelFlag); ok {
+			client = aiutil.MustConnectOpenAI(model, float32(*temperatureFlag))
 		} else {
-			client = aiclient.MustConnectOpenAI(aiclient.GPT35Turbo, float32(*temperatureFlag))
+			client = aiutil.MustConnectOpenAI(aiutil.GPT35Turbo, float32(*temperatureFlag))
 		}
 	} else if *aiFlag == "anyscale" {
-		err := aiclient.MustLoadAPIKey(false, true)
+		err := aiutil.MustLoadAPIKey(false, true)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load Anyscale API key: %s", err)
 		}
-		if model, ok := aiclient.IsAnyscaleModel(*modelFlag); ok {
-			client = aiclient.MustConnectAnyscale(model, float32(*temperatureFlag))
+		if model, ok := aiutil.IsAnyscaleModel(*modelFlag); ok {
+			client = aiutil.MustConnectAnyscale(model, float32(*temperatureFlag))
 		} else {
-			client = aiclient.MustConnectAnyscale(aiclient.CodeLlama34b, float32(*temperatureFlag))
+			client = aiutil.MustConnectAnyscale(aiutil.CodeLlama34b, float32(*temperatureFlag))
 		}
 	} else {
 		return nil, fmt.Errorf("invalid AI provider: %s provided, select either anyscale or openai", *aiFlag)
