@@ -47,6 +47,7 @@ func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversa
 		m.Model.Focus()
 
 		p := tea.NewProgram(m)
+		defer p.RestoreTerminal()
 		if resModel, err := p.Run(); err != nil {
 			return err
 		} else if resModel == nil {
