@@ -7,6 +7,7 @@ import (
 
 	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
 	"github.com/Ztkent/moki/internal/prompts"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -40,23 +41,25 @@ func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) erro
 // StartChat handles the conversation with the user
 func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversation) error {
 	for {
-		mokiModel := NewMokiModel()
-		p := tea.NewProgram(mokiModel)
-		if m, err := p.Run(); err != nil {
+		textInput := textinput.New()
+		textInput.Prompt = "You: "
+		m := MokiModel{Model: textInput, quit: false}
+		m.Model.Focus()
+
+		p := tea.NewProgram(m)
+		if resModel, err := p.Run(); err != nil {
 			return err
-		} else if m == nil {
+		} else if resModel == nil {
 			return fmt.Errorf("failed to continue the conversation.")
 		} else {
-			mokiModel = m.(MokiModel)
-			if mokiModel.quit {
+			m = resModel.(MokiModel)
+			if m.quit {
 				fmt.Println("Goodbye!")
 				return nil
 			}
 		}
-		fmt.Println(mokiModel.View())
-
 		// Handle user's message
-		err := HandleUserMessage(client, conv, ctx, mokiModel.textInput.Value())
+		err := HandleUserMessage(client, conv, ctx, m.Value())
 		if err != nil {
 			return err
 		}

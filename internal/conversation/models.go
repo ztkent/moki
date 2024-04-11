@@ -1,26 +1,17 @@
 package conversation
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type MokiModel struct {
-	textInput textinput.Model
-	quit      bool
-}
-
-func NewMokiModel() MokiModel {
-	ti := textinput.New()
-	ti.Focus()
-	ti.CharLimit = 2560
-	ti.Width = 20
-	return MokiModel{textInput: ti}
+	textinput.Model
+	quit              bool
+	selectingResource bool
 }
 
 func (m MokiModel) Init() tea.Cmd {
@@ -31,25 +22,35 @@ func (m MokiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c":
-			m.quit = true
-			return m, tea.Quit
-		case "esc", "\x1b":
+		case "ctrl+c", "esc", "\x1b":
 			m.quit = true
 			return m, tea.Quit
 		case "enter", "\r":
 			return m, tea.Quit
 		case "@":
-			// Manage resource selection
-			modifiedInput, err := ManageResourceSelection(m.textInput.Value())
+			// If we are going to enter a resource, clear the view and reinvoke the text input
+			if !m.selectingResource {
+				m.selectingResource = true
+				return m, tea.Tick(time.Millisecond, func(time.Time) tea.Msg {
+					return tea.KeyMsg{
+						Type:  tea.KeyRunes,
+						Runes: []rune{'@'},
+					}
+				})
+			}
+			// With the input hidden, we can manage the resource selection
+			modifiedInput, err := ManageResourceSelection(m.Value())
 			if err != nil {
 				return m, tea.Quit
 			}
-			m.textInput.SetValue(modifiedInput)
+			// Update the model with the modified input, including the resource
+			m.SetValue(modifiedInput)
+			m.selectingResource = false
+			return m, nil
 		default:
 			// Let the text input handle all other key presses
-			var cmd tea.Cmd
-			m.textInput, cmd = m.textInput.Update(msg)
+			updatedModel, cmd := m.Model.Update(msg)
+			m.Model = updatedModel
 			return m, cmd
 		}
 	}
@@ -57,13 +58,17 @@ func (m MokiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m MokiModel) View() string {
-	return "You: " + m.textInput.Value()
+	if m.selectingResource {
+		return ""
+	}
+	return m.Model.View()
 }
 
 type ResourceSelectionModel struct {
 	resourceTypes []string
 	cursor        int
 	selected      bool
+	quit          bool
 }
 
 func (m ResourceSelectionModel) Init() tea.Cmd {
@@ -73,9 +78,8 @@ func (m ResourceSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch key := msg.String(); key {
-		case "ctrl+c", "q", "\x03":
-			return m, tea.Quit
-		case "esc", "\x1b":
+		case "ctrl+c", "esc", "\x1b":
+			m.quit = true
 			return m, tea.Quit
 		case "enter", "\r":
 			m.selected = true
@@ -94,6 +98,10 @@ func (m ResourceSelectionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m ResourceSelectionModel) View() string {
+	if m.selected || m.quit {
+		// Don't render the view if the resource selection is done
+		return ""
+	}
 	view := ""
 	for i, resourceType := range m.resourceTypes {
 		cursor := " "
@@ -105,24 +113,66 @@ func (m ResourceSelectionModel) View() string {
 	return view
 }
 
+type ResourceInputModel struct {
+	textinput.Model
+	inputType string
+	finished  bool
+}
+
+func (m ResourceInputModel) Init() tea.Cmd {
+	return nil
+}
+
+func (m ResourceInputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "esc", "\x1b":
+			return m, tea.Quit
+		case "enter", "\r":
+			m.finished = true
+			return m, tea.Quit
+		default:
+			// Let the text input handle all other key presses
+			updatedModel, cmd := m.Model.Update(msg)
+			m.Model = updatedModel
+			return m, cmd
+		}
+	}
+	return m, nil
+}
+
+func (m ResourceInputModel) View() string {
+	return m.inputType + ": " + m.Value()
+}
+
 func ManageResourceSelection(userInput string) (string, error) {
+	// Select the type of resource to input
 	m := ResourceSelectionModel{resourceTypes: []string{"url", "file"}}
 	p := tea.NewProgram(m)
-	if m, err := p.Run(); err != nil {
+	if resModel, err := p.Run(); err != nil {
 		return userInput, err
 	} else {
-		if !m.(ResourceSelectionModel).selected {
+		if !resModel.(ResourceSelectionModel).selected {
 			return userInput, nil
 		}
+		m = resModel.(ResourceSelectionModel)
 	}
 	resourceType := m.resourceTypes[m.cursor]
 
-	// Prompt the user to enter the resource
-	fmt.Print("Enter the " + resourceType + ": ")
-	reader := bufio.NewReader(os.Stdin)
-	resource, _ := reader.ReadString('\n')
-	resource = strings.TrimSpace(resource)
+	// Input the resource path
+	m1 := ResourceInputModel{inputType: resourceType, Model: textinput.New()}
+	m1.Focus()
+	p1 := tea.NewProgram(m1)
+	if resModel, err := p1.Run(); err != nil {
+		return userInput, err
+	} else {
+		if !resModel.(ResourceInputModel).finished {
+			return userInput, nil
+		}
+		m1 = resModel.(ResourceInputModel)
+	}
 
 	// Add the resource to the user's input
-	return userInput + " -" + resourceType + ":" + resource, nil
+	return userInput + " -" + resourceType + ":" + m1.Value(), nil
 }

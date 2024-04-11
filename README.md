@@ -20,6 +20,7 @@ Tuned to assist with developer tasks like finding files, installing packages, an
   ```bash
   # Ask the assistant a question
   moki [your message]
+  cat moki.go | moki [tell me about this code]
 
   # Start a conversation with the assistant
   moki -c
