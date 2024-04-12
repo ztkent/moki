@@ -26,7 +26,6 @@ func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) erro
 	ctx, cancel := context.WithTimeout(context.Background(), MaxConversationTime)
 	defer cancel()
 
-	tea.ClearScreen()
 	// Start the chat with a fresh conversation, and get the system greeting
 	introChat, err := GetIntroduction(client, ctx)
 	if err != nil {
@@ -41,30 +40,41 @@ func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) erro
 // StartChat handles the conversation with the user
 func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversation) error {
 	for {
-		textInput := textinput.New()
-		textInput.Prompt = "You: "
-		m := MokiModel{Model: textInput, quit: false}
-		m.Model.Focus()
-
-		p := tea.NewProgram(m)
-		defer p.RestoreTerminal()
-		if resModel, err := p.Run(); err != nil {
-			return err
-		} else if resModel == nil {
-			return fmt.Errorf("failed to continue the conversation.")
-		} else {
-			m = resModel.(MokiModel)
-			if m.quit {
-				fmt.Println("Goodbye!")
-				return nil
+		done, err := func() (bool, error) {
+			textInput := textinput.New()
+			textInput.Prompt = "You: "
+			m := MokiModel{Model: textInput, quit: false}
+			m.Model.Focus()
+			p := tea.NewProgram(m)
+			defer p.RestoreTerminal()
+			defer p.Quit()
+			if resModel, err := p.Run(); err != nil {
+				return true, err
+			} else if resModel == nil {
+				return true, fmt.Errorf("failed to continue the conversation.")
+			} else {
+				m = resModel.(MokiModel)
+				if m.quit {
+					fmt.Println("Goodbye!")
+					return true, nil
+				}
+				fmt.Println("You: " + m.Value())
 			}
-		}
-		// Handle user's message
-		err := HandleUserMessage(client, conv, ctx, m.Value())
+			// Handle user's message
+			err := HandleUserMessage(client, conv, ctx, m.Value())
+			if err != nil {
+				return false, err
+			}
+			return false, nil
+		}()
 		if err != nil {
-			return err
+			fmt.Println("Request Failed: ", err)
+		}
+		if done {
+			break
 		}
 	}
+	return nil
 }
 
 // GetIntroduction sends the initial message to start the conversation

@@ -31,6 +31,7 @@ func (m MokiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// If we are going to enter a resource, clear the view and reinvoke the text input
 			if !m.selectingResource {
 				m.selectingResource = true
+				m.Blur()
 				return m, tea.Tick(time.Millisecond, func(time.Time) tea.Msg {
 					return tea.KeyMsg{
 						Type:  tea.KeyRunes,
@@ -40,12 +41,16 @@ func (m MokiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			// With the input hidden, we can manage the resource selection
 			modifiedInput, err := ManageResourceSelection(m.Value())
+			m.selectingResource = false
+			m.Focus()
 			if err != nil {
 				return m, tea.Quit
+			} else if modifiedInput == m.Value() {
+				// If the user cancels the resource selection, just return
+				return m, nil
 			}
 			// Update the model with the modified input, including the resource
 			m.SetValue(modifiedInput)
-			m.selectingResource = false
 			return m, nil
 		default:
 			// Let the text input handle all other key presses
@@ -157,12 +162,16 @@ func ManageResourceSelection(userInput string) (string, error) {
 	resourceType, err := getResourceType(userInput)
 	if err != nil {
 		return userInput, err
+	} else if resourceType == "" {
+		return userInput, nil
 	}
 
 	// Get the resource path
 	resourcePath, err := getResourcePath(resourceType)
 	if err != nil {
 		return userInput, err
+	} else if resourcePath == "" {
+		return userInput, nil
 	}
 
 	// Add the resource to the user's input
@@ -197,7 +206,7 @@ func getResourceType(userInput string) (string, error) {
 		return userInput, err
 	} else {
 		if !resModel.(ResourceSelectionModel).selected {
-			return userInput, nil
+			return "", nil
 		}
 		m = resModel.(ResourceSelectionModel)
 	}
