@@ -46,8 +46,6 @@ func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversa
 			m := MokiModel{Model: textInput, quit: false}
 			m.Model.Focus()
 			p := tea.NewProgram(m)
-			defer p.RestoreTerminal()
-			defer p.Quit()
 			if resModel, err := p.Run(); err != nil {
 				return true, err
 			} else if resModel == nil {
