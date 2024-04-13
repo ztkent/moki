@@ -1,7 +1,7 @@
 github.com/PuerkitoBio/goquery v1.9.1 h1:mTL6XjbJTZdpfL+Gwl5U2h1l9yEkJjhmlTeV9VPW7UI=
 github.com/PuerkitoBio/goquery v1.9.1/go.mod h1:cW1n6TmIMDoORQU5IU/P1T3tGFunOeXEpGP2WHRwkbY=
-github.com/Ztkent/ai-util v0.4.0 h1:JphlHS03ImMkymEdYYF1Uy+D+8FpOarQEnSBZzO9bAY=
-github.com/Ztkent/ai-util v0.4.0/go.mod h1:vYDmIzCBlm+Wq79p0NAIZyFmV+6oZ81PmW+hTHk2rX4=
+github.com/Ztkent/ai-util v0.4.1 h1:cxpIBIyTLwE1vRyr4gTkSBn8K2sW34ydRbY3jICeeR0=
+github.com/Ztkent/ai-util v0.4.1/go.mod h1:vYDmIzCBlm+Wq79p0NAIZyFmV+6oZ81PmW+hTHk2rX4=
 github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsViSLyss=
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=

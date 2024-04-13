@@ -42,7 +42,7 @@ const (
 	DefaultModel     = "turbo35"
 	DefaultProvider  = "openai"
 	DefaultTemp      = 0.2
-	DefaultMaxTokens = 1000
+	DefaultMaxTokens = 100000
 )
 
 func main() {
