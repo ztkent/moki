@@ -26,7 +26,7 @@ func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64
 		if model, ok := aiutil.IsAnyscaleModel(*modelFlag); ok {
 			client = aiutil.MustConnectAnyscale(model, float32(*temperatureFlag))
 		} else {
-			client = aiutil.MustConnectAnyscale(aiutil.CodeLlama34b, float32(*temperatureFlag))
+			client = aiutil.MustConnectAnyscale(aiutil.Mixtral8x7BInstruct, float32(*temperatureFlag))
 		}
 	} else {
 		return nil, fmt.Errorf("invalid AI provider: %s provided, select either anyscale or openai", *aiFlag)
@@ -42,7 +42,6 @@ Flags:
 	-c:                        Start a conversation with Moki
 	-llm [openai, anyscale]:   Set the LLM Provider
 	-m [string]:               Set the model to use for the LLM response
-	-max-messages [int]:       Set the maximum conversation context length
 	-max-tokens [int]:         Set the maximum number of tokens to generate per response
 	-t [0.0-1.0]:              Set the temperature for the LLM response
 	-d:                        Show debug logging
@@ -55,13 +54,10 @@ API Keys:
 Model Options:
 	- OpenAI:
 		- gpt-3.5-turbo, aka: turbo35
-		- gpt-4-turbo-preview, aka: turbo
+		- gpt-4-turbo-preview, aka: turbopreview
+		- gpt-4-turbo, aka: turbo
 	- Anyscale:
 		- mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
 		- mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
-		- meta-llama/Llama-2-7b-chat-hf, aka: l7b
-		- meta-llama/Llama-2-13b-chat-hf, aka: l13b
-		- meta-llama/Llama-2-70b-chat-hf, aka: l70b
-		- codellama/CodeLlama-34b-Instruct-hf, aka: cl34b
 		- codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
 `

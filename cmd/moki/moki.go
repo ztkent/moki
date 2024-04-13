@@ -38,15 +38,21 @@ func init() {
 	}
 }
 
+const (
+	DefaultModel     = "turbo35"
+	DefaultProvider  = "openai"
+	DefaultTemp      = 0.2
+	DefaultMaxTokens = 1000
+)
+
 func main() {
 	// Define the flags
 	helpFlag := flag.Bool("h", false, "Show this message")
 	convFlag := flag.Bool("c", false, "Start a conversation with Moki")
-	aiFlag := flag.String("llm", "openai", "Selct the LLM provider, either OpenAI or Anyscale")
-	modelFlag := flag.String("m", "turbo35", "Set the model to use for the LLM response")
-	temperatureFlag := flag.Float64("t", 0.2, "Set the temperature for the LLM response")
-	maxMessagesFlag := flag.Int("max-messages", 0, "Set the maximum conversation context length")
-	maxTokensFlag := flag.Int("max-tokens", 1000, "Set the maximum number of tokens to generate per response")
+	aiFlag := flag.String("llm", DefaultProvider, "Selct the LLM provider, either OpenAI or Anyscale")
+	modelFlag := flag.String("m", DefaultModel, "Set the model to use for the LLM response")
+	temperatureFlag := flag.Float64("t", DefaultTemp, "Set the temperature for the LLM response")
+	maxTokensFlag := flag.Int("max-tokens", DefaultMaxTokens, "Set the maximum number of tokens to generate per response")
 	ragFlag := flag.Bool("r", true, "Enable RAG functionality")
 
 	// Parse the flags
@@ -71,18 +77,9 @@ func main() {
 		"Provider": *aiFlag,
 	}).Debug("Starting AI Client")
 
-	// Seed the conversation with some initial context to improve the AI responses
-	conv := aiutil.NewConversation(prompts.MokiPrompt, *maxMessagesFlag, *maxTokensFlag, *ragFlag)
-	conv.SeedConversation(map[string]string{
-		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
-		"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",
-		"list all files in a directory":                        "ls -la",
-		"ammend specific old commit with commit sha":           "git rebase -i <commit-sha>",
-		"run a specific command on a specific day of the week": "echo \"0 0 * * <day-of-week> <command>\" | sudo tee -a /etc/crontab",
-	})
-
 	if *convFlag {
 		// Start a conversation with Moki
+		conv := aiutil.NewConversation(prompts.ConversationPrompt, *maxTokensFlag, *ragFlag)
 		err := conversation.StartConversationCLI(client, conv)
 		if err != nil {
 			logger.WithFields(logrus.Fields{
@@ -90,19 +87,30 @@ func main() {
 			}).Error("Conversation Failed")
 		}
 		return
-	}
+	} else {
+		// Send a single request to Moki
+		conv := aiutil.NewConversation(prompts.RequestPrompt, *maxTokensFlag, *ragFlag)
+		// Seed the conversation with some initial context to improve the AI responses
+		conv.SeedConversation(map[string]string{
+			"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
+			"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",
+			"list all files in a directory":                        "ls -la",
+			"ammend specific old commit with commit sha":           "git rebase -i <commit-sha>",
+			"run a specific command on a specific day of the week": "echo \"0 0 * * <day-of-week> <command>\" | sudo tee -a /etc/crontab",
+		})
 
-	// Require an input
-	if len(flag.Args()) == 0 {
-		fmt.Println("Please provide a question to ask Moki")
-		return
-	}
+		// Require an input
+		if len(flag.Args()) == 0 {
+			fmt.Println("Please provide a question to ask Moki")
+			return
+		}
 
-	// Respond with a single request to Moki
-	err = request.LogChatStream(client, conv, strings.Join(flag.Args(), " "))
-	if err != nil {
-		logger.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("Failed to log new chat stream")
+		// Respond with a single request to Moki
+		err = request.LogChatStream(client, conv, strings.Join(flag.Args(), " "))
+		if err != nil {
+			logger.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("Failed to log new chat stream")
+		}
 	}
 }

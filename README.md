@@ -24,29 +24,17 @@ Tuned to assist with developer tasks like finding files, installing packages, an
 
   # Start a conversation with the assistant
   moki -c
-  moki -llm=openai -c -max-messages=250 -max-tokens=1000 -t=0.5
+  moki -llm=openai -c -max-tokens=100000 -t=0.5
   ```
 
-## Examples
+## Example
 ``` 
 moki install Python 3.9 on Ubuntu
 - sudo apt update && sudo apt install python3.9
 
-moki given a text file, wrap each line in quotes. format it for display
-- sed 's/.*/"&"/' file.txt
-
-moki given a text file, wrap each line in quotes. format it for display with python
-- with open('file.txt', 'r') as f:
-  lines = f.readlines()
-  lines = ['"{}"'.format(line.strip()) for line in lines]
-  print('\n'.join(lines))
-
 moki update git email and username
 - git config --global user.email "youremail@example.com"
   git config --global user.name "Your Name"
-
-moki git re-edit a specific commit
-- git commit --amend
 ```
 
 
@@ -56,32 +44,33 @@ moki git re-edit a specific commit
   - Anyscale (https://www.anyscale.com/endpoints)  
 ```
 Flags:
-  -h:                        Show this message
   -c:                        Start a conversation with Moki
   -llm [openai, anyscale]:   Set the LLM Provider
-  -m [string]:               Set the model to use for the LLM response
-  -max-messages [int]:       Set the maximum conversation context length
-  -max-tokens [int]:         Set the maximum number of tokens to generate per response
-  -t [0.0-1.0]:              Set the temperature for the LLM response
+  -m   [string]:             Set the model to use for the LLM response
+  -max-tokens [int]:         Set the maximum number of tokens to generate
+  -t   [0.0-1.0]:            Set the temperature for the LLM response
   -d:                        Show debug logging
 
 Model Options:
   - OpenAI:
     - gpt-3.5-turbo, aka: turbo35
-    - gpt-4-turbo-preview, aka: turbo
+    - gpt-4-turbo-preview, aka: turbopreview
+    - gpt-4-turbo, aka: turbo
   - Anyscale:
     - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
     - mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
-    - meta-llama/Llama-2-7b-chat-hf, aka: l7b
-    - meta-llama/Llama-2-13b-chat-hf, aka: l13b
-    - meta-llama/Llama-2-70b-chat-hf, aka: l70b
-    - codellama/CodeLlama-34b-Instruct-hf, aka: cl34b
     - codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
+```
+
+#### Conversation
+The assistant can be used in conversation mode.  
+This allows the assistant to generate more in-depth responses, use .
+```bash
+moki -c
 ```
 
 #### API Provider
 By default the assistant will use OpenAI. To use Anyscale, run the assistant with a flag. 
-
 ```bash
 moki -llm=openai
 moki -llm=anyscale 
@@ -89,33 +78,21 @@ moki -llm=anyscale
 
 #### Model
 Depending on the LLM Provider selected, different models are available.  
-By default the Anyscale API uses `Mistral-8x7b`, and OpenAI uses `gpt-4-turbo-preview`.
+By default the OpenAI API uses `gpt-4-turbo`, and OpenAI uses `Mistral-8x7b`.
 ```bash
-moki -m=m8x7b
-```
-
-#### Conversation
-The assistant can be used in conversation mode.  
-This allows the assistant to remember previous messages and use them to generate more in-depth responses.
-```bash
-moki -c
-```
-
-#### Conversation Context
-Larger conversations require more tokens, by default the conversation context is limited to 100 messages.  
-```bash
-moki -max-messages=250
+moki -m=m8x7bthat
 ```
 
 #### Token Limit
-Tokens cost money, by default the assistant will generate as many tokens as it needs for the converation.
+Tokens cost money.   
+By default the assistant will limit any conversation to 100k tokens.
 ```bash
-moki -max-tokens=10000
+moki -max-tokens=100000
 ```
 
 #### Temperature
-The temperature of the LLM response is a measure of randomness. Adjust this value to taste.
-Temperature is a float between 0 and 1. By default the temperature is 0.2
+The temperature of an LLM response is a measure of randomness.   
+The value float between 0 and 1. By default the temperature is 0.2
 ```bash
 moki -t=0.5
 ```

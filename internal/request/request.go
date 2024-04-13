@@ -3,12 +3,13 @@ package request
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
 )
 
-func LogChatStream(client *aiutil.Client, conv *aiutil.Conversation, chatPrompt string) error {
+func LogChatStream(client *aiutil.Client, conv *aiutil.Conversation, userInput string) error {
 	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 
@@ -17,13 +18,18 @@ func LogChatStream(client *aiutil.Client, conv *aiutil.Conversation, chatPrompt 
 
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
-	userInput := conv.ManageRAG(chatPrompt)
-	// Check if the user provided a message
-	if len(userInput) == 0 {
-		return fmt.Errorf("Please provide a message to continue the conversation.")
+	modifiedInput, resourcesAdded, err := aiutil.ManageRAG(conv, userInput)
+	if err != nil {
+		return err
+	}
+	if len(modifiedInput) == 0 {
+		fmt.Println("Please provide a message to continue the conversation.")
+		return nil
+	} else if len(resourcesAdded) > 0 {
+		fmt.Println("Resources added to conversation: ", strings.Join(resourcesAdded, ","))
 	}
 
-	go client.SendStreamRequest(oneMin, conv, chatPrompt, responseChan, errChan)
+	go client.SendStreamRequest(oneMin, conv, modifiedInput, responseChan, errChan)
 	// Read the response from the channel as it is streamed
 	for {
 		select {
