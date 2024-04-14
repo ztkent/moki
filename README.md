@@ -1,10 +1,14 @@
-# Moki
-An AI assistant for the command line.  
-Tuned to assist with developer tasks like finding files, installing packages, and git.
+<a href="https://github.com/ztkent/moki/releases"><img src="https://img.shields.io/github/v/tag/ztkent/moki.svg" alt="Latest Release"></a>
+<a href="https://github.com/ztkent/moki/actions"><img src="https://github.com/ztkent/moki/actions/workflows/build.yml/badge.svg?branch=main" alt="Build Status"></a>
 
+# <img width="40" alt="logo_moki" src="https://github.com/Ztkent/moki/assets/7357311/f1dfb864-3c20-4384-898b-1acc4bb7c92f"> Moki
+
+An AI assistant for the command line.  
+
+Tuned to assist with developer tasks like finding files, installing packages, and git.   
+Conversation mode can explain code snippets, generate unit tests, and scaffold new projects.
 
 ## Usage
-
 - Install moki:  
   ```bash
   go install github.com/Ztkent/moki/cmd/moki@latest
@@ -24,21 +28,14 @@ Tuned to assist with developer tasks like finding files, installing packages, an
 
   # Start a conversation with the assistant
   moki -c
-  moki -llm=openai -c -max-tokens=100000 -t=0.5
+  moki -m=turbo -c -max-tokens=100000 -t=0.5
   ```
 
 ## Example
-``` 
-moki install Python 3.9 on Ubuntu
-- sudo apt update && sudo apt install python3.9
-
-moki update git email and username
-- git config --global user.email "youremail@example.com"
-  git config --global user.name "Your Name"
-```
+https://github.com/Ztkent/moki/assets/7357311/52cb7637-39b8-4b49-8bf3-3875ab124c56
 
 
-### Options
+## Configuration
 - There are two options for the API provider:  
   - OpenAI (https://platform.openai.com/docs/overview)  
   - Anyscale (https://www.anyscale.com/endpoints)  
@@ -46,9 +43,9 @@ moki update git email and username
 Flags:
   -c:                        Start a conversation with Moki
   -llm [openai, anyscale]:   Set the LLM Provider
-  -m   [string]:             Set the model to use for the LLM response
-  -max-tokens [int]:         Set the maximum number of tokens to generate
-  -t   [0.0-1.0]:            Set the temperature for the LLM response
+  -m:                        Set the model to use for the LLM response
+  -max-tokens:               Set the maximum number of tokens to generate
+  -t [0.0-1.0]:              Set the temperature for the LLM response
   -d:                        Show debug logging
 
 Model Options:
@@ -64,7 +61,7 @@ Model Options:
 
 #### Conversation
 The assistant can be used in conversation mode.  
-This allows the assistant to generate more in-depth responses, use .
+This allows the assistant to generate more in-depth responses.
 ```bash
 moki -c
 ```
@@ -80,7 +77,7 @@ moki -llm=anyscale
 Depending on the LLM Provider selected, different models are available.  
 By default the OpenAI API uses `gpt-4-turbo`, and OpenAI uses `Mistral-8x7b`.
 ```bash
-moki -m=m8x7bthat
+moki -m=m8x7b
 ```
 
 #### Token Limit

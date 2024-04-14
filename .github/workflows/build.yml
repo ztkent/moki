@@ -1,4 +1,4 @@
-name: Go
+name: Build
 
 on:
   push:
@@ -16,14 +16,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-
-    - name: Set up Go
+    - name: Setup
       uses: actions/setup-go@v4
       with:
         go-version: '1.21'
-
     - name: Build
       run: go build -v ./...
-
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
     - name: Test
-      run: go test -v $(go list -f '{{.Dir}}/...' -m | xargs)
+      run: go test -v ./...
