@@ -26,6 +26,10 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
   moki [your message]
   cat moki.go | moki [tell me about this code]
 
+  # Provide additional context
+  moki [tell me about this code]    -file:moki.go
+  moki [tell me about this project] -url:https://github.com/Ztkent/moki
+
   # Start a conversation with the assistant
   moki -c
   moki -m=turbo -c -max-tokens=100000 -t=0.5
