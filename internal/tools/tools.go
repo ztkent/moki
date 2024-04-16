@@ -20,25 +20,25 @@ func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64
 	if *aiFlag == "openai" {
 		err := aiutil.MustLoadAPIKey(true, false)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load OpenAI API key: %s", err)
+			return nil, fmt.Errorf("Failed to load OpenAI API key: %s", err)
 		}
 		if model, ok := aiutil.IsOpenAIModel(*modelFlag); ok {
 			client = aiutil.MustConnectOpenAI(model, float32(*temperatureFlag))
 		} else {
-			client = aiutil.MustConnectOpenAI(aiutil.GPT35Turbo, float32(*temperatureFlag))
+			return nil, fmt.Errorf("Invalid OpenAI model: %s provided", *modelFlag)
 		}
 	} else if *aiFlag == "anyscale" {
 		err := aiutil.MustLoadAPIKey(false, true)
 		if err != nil {
-			return nil, fmt.Errorf("failed to load Anyscale API key: %s", err)
+			return nil, fmt.Errorf("Failed to load Anyscale API key: %s", err)
 		}
 		if model, ok := aiutil.IsAnyscaleModel(*modelFlag); ok {
 			client = aiutil.MustConnectAnyscale(model, float32(*temperatureFlag))
 		} else {
-			client = aiutil.MustConnectAnyscale(aiutil.Mixtral8x7BInstruct, float32(*temperatureFlag))
+			return nil, fmt.Errorf("Invalid Anyscale model: %s provided", *modelFlag)
 		}
 	} else {
-		return nil, fmt.Errorf("invalid AI provider: %s provided, select either anyscale or openai", *aiFlag)
+		return nil, fmt.Errorf("Invalid AI provider: %s provided, select either anyscale or openai", *aiFlag)
 	}
 	return client, nil
 }
