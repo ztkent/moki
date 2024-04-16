@@ -1,7 +1,10 @@
 package tools
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strings"
 
 	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
 )
@@ -34,8 +37,28 @@ func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64
 	return client, nil
 }
 
+func ReadFromStdin() string {
+	info, _ := os.Stdin.Stat()
+	if (info.Mode() & os.ModeCharDevice) == 0 {
+		scanner := bufio.NewScanner(os.Stdin)
+		var input strings.Builder
+		for scanner.Scan() {
+			input.WriteString(scanner.Text())
+			input.WriteRune('\n')
+		}
+		return input.String()
+	}
+	return ""
+}
+
 var HelpMessage = `Usage:
-	moki [your question]
+	# Ask the assistant a question
+	moki [your message]
+	cat moki.go | moki [tell me about this code]
+  
+	# Start a conversation with the assistant
+	moki -c
+	moki -m=turbo -c -max-tokens=100000 -t=0.5
 
 Flags:
 	-h:                        Show this message

@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "run moki with stdin",
+        "type": "shell",
+        "command": "cat ${workspaceFolder}/cmd/moki/moki.go | go run ${workspaceFolder}/cmd/moki/moki.go tell me about this code",
+        "problemMatcher": []
+      }
+    ]
+  }

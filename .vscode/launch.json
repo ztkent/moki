@@ -34,6 +34,12 @@
       "args": ["-c", "-llm=openai"],
       "envFile": "${workspaceFolder}/.env",
       "console": "integratedTerminal",
+    },
+    {
+      "name": "🖥️ run moki with stdin 🖥️",
+      "type": "go",
+      "request": "launch",
+      "preLaunchTask": "run moki with stdin"
     }
     ]
 }

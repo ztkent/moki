@@ -78,8 +78,15 @@ func main() {
 	}).Debug("Starting AI Client")
 
 	if *convFlag {
-		// Start a conversation with Moki
+		// Create a new conversation with Moki
 		conv := aiutil.NewConversation(prompts.ConversationPrompt, *maxTokensFlag, *ragFlag)
+		// Check if there is any input from stdin
+		stdinInput := tools.ReadFromStdin()
+		if stdinInput != "" {
+			conv.AddReference("User Input", stdinInput)
+		}
+
+		// Start the conversation
 		err := conversation.StartConversationCLI(client, conv)
 		if err != nil {
 			logger.WithFields(logrus.Fields{
@@ -88,7 +95,7 @@ func main() {
 		}
 		return
 	} else {
-		// Send a single request to Moki
+		// Create a new conversation with Moki
 		conv := aiutil.NewConversation(prompts.RequestPrompt, *maxTokensFlag, *ragFlag)
 		// Seed the conversation with some initial context to improve the AI responses
 		conv.SeedConversation(map[string]string{
@@ -103,6 +110,12 @@ func main() {
 		if len(flag.Args()) == 0 {
 			fmt.Println("Please provide a question to ask Moki")
 			return
+		}
+
+		// Check if there is any input from stdin
+		stdinInput := tools.ReadFromStdin()
+		if stdinInput != "" {
+			conv.AddReference("User Input", stdinInput)
 		}
 
 		// Respond with a single request to Moki
