@@ -1,4 +1,4 @@
-<a href="https://github.com/ztkent/moki/releases"><img src="https://img.shields.io/github/v/tag/ztkent/moki.svg" alt="Latest Release"></a>
+<a href="https://github.com/ztkent/moki/tags"><img src="https://img.shields.io/github/v/tag/ztkent/moki.svg" alt="Latest Release"></a>
 <a href="https://github.com/ztkent/moki/actions"><img src="https://github.com/ztkent/moki/actions/workflows/build.yml/badge.svg?branch=main" alt="Build Status"></a>
 
 # <img width="40" alt="logo_moki" src="https://github.com/Ztkent/moki/assets/7357311/f1dfb864-3c20-4384-898b-1acc4bb7c92f"> Moki
@@ -24,20 +24,19 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
   ```bash
   # Ask the assistant a question
   moki [your message]
-  cat moki.go | moki [tell me about this code]
 
   # Provide additional context
+  cat moki.go | moki [tell me about this code]
   moki [tell me about this code]    -file:moki.go
   moki [tell me about this project] -url:https://github.com/Ztkent/moki
 
   # Start a conversation with the assistant
   moki -c
-  moki -m=turbo -c -max-tokens=100000 -t=0.5
+  moki -c -m=turbo -max-tokens=100000 -t=0.5
   ```
 
 ## Example
-https://github.com/Ztkent/moki/assets/7357311/52cb7637-39b8-4b49-8bf3-3875ab124c56
-
+https://github.com/Ztkent/moki/assets/7357311/2b839654-9d34-4307-a76c-598d9c09048e
 
 ## Configuration
 - There are two options for the API provider:  
@@ -55,7 +54,6 @@ Flags:
 Model Options:
   - OpenAI:
     - gpt-3.5-turbo, aka: turbo35
-    - gpt-4-turbo-preview, aka: turbopreview
     - gpt-4-turbo, aka: turbo
   - Anyscale:
     - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
