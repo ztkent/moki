@@ -10,6 +10,12 @@ import (
 )
 
 func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64) (*aiutil.Client, error) {
+	// Check if we need to switch the provider
+	_, isAnyscaleModel := aiutil.IsAnyscaleModel(*modelFlag)
+	if *aiFlag == "openai" && isAnyscaleModel {
+		*aiFlag = "anyscale"
+	}
+
 	var client *aiutil.Client
 	if *aiFlag == "openai" {
 		err := aiutil.MustLoadAPIKey(true, false)

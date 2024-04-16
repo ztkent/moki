@@ -1,6 +1,5 @@
 .PHONY: build test clean
 
-# The name of the output binary
 BINARY_NAME=moki
 
 # The Go path
