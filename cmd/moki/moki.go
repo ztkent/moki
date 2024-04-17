@@ -69,13 +69,13 @@ func main() {
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"error": err,
-		}).Error("Failed to connect to the AI client")
+		}).Errorln("Failed to connect to the AI client")
 		return
 	}
 	logger.WithFields(logrus.Fields{
 		"Model":    *modelFlag,
 		"Provider": *aiFlag,
-	}).Debug("Starting AI Client")
+	}).Debugln("Starting AI Client")
 
 	if *convFlag {
 		// Create a new conversation with Moki
@@ -84,6 +84,9 @@ func main() {
 		stdinInput := tools.ReadFromStdin()
 		if stdinInput != "" {
 			conv.AddReference("User Input", stdinInput)
+			logger.WithFields(logrus.Fields{
+				"Reference": stdinInput,
+			}).Debugln("Added new reference from stdin")
 		}
 
 		// Start the conversation
@@ -91,7 +94,7 @@ func main() {
 		if err != nil {
 			logger.WithFields(logrus.Fields{
 				"error": err,
-			}).Error("Conversation Failed")
+			}).Errorln("Conversation Failed")
 		}
 		return
 	} else {
@@ -116,6 +119,9 @@ func main() {
 		stdinInput := tools.ReadFromStdin()
 		if stdinInput != "" {
 			conv.AddReference("User Input", stdinInput)
+			logger.WithFields(logrus.Fields{
+				"Reference": stdinInput,
+			}).Debugln("Added new reference from stdin")
 		}
 
 		// Respond with a single request to Moki
@@ -123,7 +129,7 @@ func main() {
 		if err != nil {
 			logger.WithFields(logrus.Fields{
 				"error": err,
-			}).Error("Failed to log new chat stream")
+			}).Errorln("Failed to log new chat stream")
 		}
 	}
 }
