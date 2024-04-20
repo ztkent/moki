@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
+	aiutil "github.com/Ztkent/ai-util"
 	"github.com/Ztkent/moki/internal/prompts"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -27,7 +27,7 @@ var exitCommands = []string{"exit", "quit", "bye", ":q", "end", "q"}
 var helpCommands = []string{"help", "?"}
 
 // StartConversationCLI starts a conversation with Moki via the CLI
-func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) error {
+func StartConversationCLI(client aiutil.Client, conv *aiutil.Conversation) error {
 	// Set the maximum conversation time
 	ctx, cancel := context.WithTimeout(context.Background(), MaxConversationTime)
 	defer cancel()
@@ -45,7 +45,7 @@ func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) erro
 }
 
 // StartChat handles the conversation with the user
-func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversation) error {
+func StartChat(ctx context.Context, client aiutil.Client, conv *aiutil.Conversation) error {
 	for {
 		done, err := func() (bool, error) {
 			textInput := textinput.New()
@@ -83,7 +83,7 @@ func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversa
 }
 
 // GetIntroduction sends the initial message to start the conversation
-func GetIntroduction(client *aiutil.Client, ctx context.Context) (string, error) {
+func GetIntroduction(client aiutil.Client, ctx context.Context) (string, error) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, SingleRequestTime)
 	defer cancel()
 
@@ -96,7 +96,7 @@ func GetIntroduction(client *aiutil.Client, ctx context.Context) (string, error)
 }
 
 // handleUserMessage handles the user's message
-func HandleUserMessage(client *aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
+func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
 	modifiedInput, resourcesAdded, err := aiutil.ManageRAG(conv, userInput)

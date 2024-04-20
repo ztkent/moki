@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
+	aiutil "github.com/Ztkent/ai-util"
 	"github.com/Ztkent/moki/internal/conversation"
 	"github.com/Ztkent/moki/internal/prompts"
 	"github.com/Ztkent/moki/internal/request"

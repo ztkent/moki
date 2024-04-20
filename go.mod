@@ -2,6 +2,8 @@ module github.com/Ztkent/moki
 
 go 1.22.0
 
+replace github.com/Ztkent/ai-util => ../ai-util
+
 require (
 	github.com/Ztkent/ai-util v0.4.3
 	github.com/charmbracelet/bubbles v0.18.0
@@ -29,6 +31,7 @@ require (
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/pkoukk/tiktoken-go v0.1.6 // indirect
 	github.com/pkoukk/tiktoken-go-loader v0.0.1 // indirect
+	github.com/replicate/replicate-go v0.18.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sashabaranov/go-openai v1.22.0 // indirect
 	golang.org/x/net v0.24.0 // indirect

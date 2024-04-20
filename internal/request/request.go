@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
+	aiutil "github.com/Ztkent/ai-util"
 )
 
-func LogChatStream(client *aiutil.Client, conv *aiutil.Conversation, userInput string) error {
+func LogChatStream(client aiutil.Client, conv *aiutil.Conversation, userInput string) error {
 	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 

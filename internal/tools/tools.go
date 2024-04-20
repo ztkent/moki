@@ -6,19 +6,19 @@ import (
 	"os"
 	"strings"
 
-	aiutil "github.com/Ztkent/ai-util/pkg/aiutil"
+	aiutil "github.com/Ztkent/ai-util"
 )
 
-func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64) (*aiutil.Client, error) {
+func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64) (aiutil.Client, error) {
 	// Check if we need to switch the provider
 	_, isAnyscaleModel := aiutil.IsAnyscaleModel(*modelFlag)
 	if *aiFlag == "openai" && isAnyscaleModel {
 		*aiFlag = "anyscale"
 	}
 
-	var client *aiutil.Client
+	var client aiutil.Client
 	if *aiFlag == "openai" {
-		err := aiutil.MustLoadAPIKey(true, false)
+		err := aiutil.MustLoadAPIKey(aiutil.OpenAI)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load OpenAI API key: %s", err)
 		}
@@ -28,7 +28,7 @@ func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64
 			return nil, fmt.Errorf("Invalid OpenAI model: %s provided", *modelFlag)
 		}
 	} else if *aiFlag == "anyscale" {
-		err := aiutil.MustLoadAPIKey(false, true)
+		err := aiutil.MustLoadAPIKey(aiutil.Anyscale)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load Anyscale API key: %s", err)
 		}
