@@ -10,6 +10,14 @@
       "envFile": "${workspaceFolder}/.env",
     },
     {
+      "name": "🖥️ start replicate 🖥️",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/cmd/moki/moki.go",
+      "args": ["-llm=replicate", "give me some python code to classify images"],
+      "envFile": "${workspaceFolder}/.env",
+    },
+    {
       "name": "🖥️ help 🖥️",
       "type": "go",
       "request": "launch",

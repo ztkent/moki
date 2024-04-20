@@ -2,46 +2,9 @@ package tools
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strings"
-
-	aiutil "github.com/Ztkent/ai-util"
 )
-
-func ConnectAIClient(aiFlag *string, modelFlag *string, temperatureFlag *float64) (aiutil.Client, error) {
-	// Check if we need to switch the provider
-	_, isAnyscaleModel := aiutil.IsAnyscaleModel(*modelFlag)
-	if *aiFlag == "openai" && isAnyscaleModel {
-		*aiFlag = "anyscale"
-	}
-
-	var client aiutil.Client
-	if *aiFlag == "openai" {
-		err := aiutil.MustLoadAPIKey(aiutil.OpenAI)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to load OpenAI API key: %s", err)
-		}
-		if model, ok := aiutil.IsOpenAIModel(*modelFlag); ok {
-			client = aiutil.MustConnectOpenAI(model, float32(*temperatureFlag))
-		} else {
-			return nil, fmt.Errorf("Invalid OpenAI model: %s provided", *modelFlag)
-		}
-	} else if *aiFlag == "anyscale" {
-		err := aiutil.MustLoadAPIKey(aiutil.Anyscale)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to load Anyscale API key: %s", err)
-		}
-		if model, ok := aiutil.IsAnyscaleModel(*modelFlag); ok {
-			client = aiutil.MustConnectAnyscale(model, float32(*temperatureFlag))
-		} else {
-			return nil, fmt.Errorf("Invalid Anyscale model: %s provided", *modelFlag)
-		}
-	} else {
-		return nil, fmt.Errorf("Invalid AI provider: %s provided, select either anyscale or openai", *aiFlag)
-	}
-	return client, nil
-}
 
 func ReadFromStdin() string {
 	info, _ := os.Stdin.Stat()

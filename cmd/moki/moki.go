@@ -38,21 +38,14 @@ func init() {
 	}
 }
 
-const (
-	DefaultModel     = "turbo35"
-	DefaultProvider  = "openai"
-	DefaultTemp      = 0.2
-	DefaultMaxTokens = 100000
-)
-
 func main() {
 	// Define the flags
 	helpFlag := flag.Bool("h", false, "Show this message")
 	convFlag := flag.Bool("c", false, "Start a conversation with Moki")
-	aiFlag := flag.String("llm", DefaultProvider, "Selct the LLM provider, either OpenAI or Anyscale")
-	modelFlag := flag.String("m", DefaultModel, "Set the model to use for the LLM response")
-	temperatureFlag := flag.Float64("t", DefaultTemp, "Set the temperature for the LLM response")
-	maxTokensFlag := flag.Int("max-tokens", DefaultMaxTokens, "Set the maximum number of tokens to generate per response")
+	aiFlag := flag.String("llm", aiutil.DefaultProvider, "Selct the LLM provider, either OpenAI, Replicate, or Anyscale")
+	modelFlag := flag.String("m", "", "Set the model to use for the LLM response")
+	temperatureFlag := flag.Float64("t", aiutil.DefaultTemp, "Set the temperature for the LLM response")
+	maxTokensFlag := flag.Int("max-tokens", aiutil.DefaultMaxTokens, "Set the maximum number of tokens to generate per response")
 	ragFlag := flag.Bool("r", true, "Enable RAG functionality")
 
 	// Parse the flags
@@ -65,7 +58,7 @@ func main() {
 	}
 
 	//  Connect to AI Client
-	client, err := tools.ConnectAIClient(aiFlag, modelFlag, temperatureFlag)
+	client, err := aiutil.NewAIClient(*aiFlag, *modelFlag, *temperatureFlag)
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"error": err,
