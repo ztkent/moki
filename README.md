@@ -18,6 +18,7 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
   ```bash
   export OPENAI_API_KEY=<your key>
   export ANYSCALE_API_KEY=<your key>
+  export REPLICATE_API_TOKEN=<your key>
   ```
 
 - Run the assistant:
@@ -39,25 +40,31 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
 https://github.com/Ztkent/moki/assets/7357311/2b839654-9d34-4307-a76c-598d9c09048e
 
 ## Configuration
-- There are two options for the API provider:  
+- There are a few options for the API provider:  
   - OpenAI (https://platform.openai.com/docs/overview)  
+  - Replicate (https://replicate.com/docs)
   - Anyscale (https://www.anyscale.com/endpoints)  
 ```
 Flags:
   -c:                        Start a conversation with Moki
-  -llm [openai, anyscale]:   Set the LLM Provider
+  -llm:                      Set the LLM Provider
   -m:                        Set the model to use for the LLM response
   -max-tokens:               Set the maximum number of tokens to generate
-  -t [0.0-1.0]:              Set the temperature for the LLM response
+  -t:                        Set the temperature for the LLM response
   -d:                        Show debug logging
 
 Model Options:
   - OpenAI:
-    - gpt-3.5-turbo, aka: turbo35
+    - [Default] gpt-3.5-turbo, aka: turbo35
     - gpt-4-turbo, aka: turbo
+  - Replicate:
+    - [Default] meta-llama-3-8b, aka: l3-8b (default)
+    - meta-llama-3-8b-instruct, aka: l3-8b-instruct
+    - meta-llama-3-70b, aka: l3-70b
+    - meta-llama-3-70b-instruct, aka: l3-70b-instruct
   - Anyscale:
+    - [Default] mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b (default)
     - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
-    - mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
     - codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
 ```
 
@@ -69,17 +76,19 @@ moki -c
 ```
 
 #### API Provider
-By default the assistant will use OpenAI. To use Anyscale, run the assistant with a flag. 
+By default the assistant will use OpenAI. To use another, run the assistant with a flag. 
 ```bash
 moki -llm=openai
 moki -llm=anyscale 
+moki -llm=replicate 
 ```
 
 #### Model
 Depending on the LLM Provider selected, different models are available.  
-By default the OpenAI API uses `gpt-4-turbo`, and OpenAI uses `Mistral-8x7b`.
 ```bash
+moki -m=turbo
 moki -m=m8x7b
+moki -m=l3-70b
 ```
 
 #### Token Limit

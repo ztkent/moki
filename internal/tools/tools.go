@@ -23,33 +23,41 @@ func ReadFromStdin() string {
 var HelpMessage = `Usage:
 	# Ask the assistant a question
 	moki [your message]
+
+	# Provide additional context
 	cat moki.go | moki [tell me about this code]
-  
+	moki [tell me about this code]    -file:moki.go
+	moki [tell me about this project] -url:https://github.com/Ztkent/moki
+
 	# Start a conversation with the assistant
 	moki -c
-	moki -m=turbo -c -max-tokens=100000 -t=0.5
+	moki -c -m=turbo -max-tokens=100000 -t=0.5
 
 Flags:
 	-h:                        Show this message
 	-c:                        Start a conversation with Moki
-	-llm [openai, anyscale]:   Set the LLM Provider
-	-m [string]:               Set the model to use for the LLM response
-	-max-tokens [int]:         Set the maximum number of tokens to generate per response
-	-t [0.0-1.0]:              Set the temperature for the LLM response
+	-llm:                      Set the LLM Provider
+	-m:                        Set the model to use for the LLM response
+	-max-tokens: 	           Set the maximum number of tokens to generate per response
+	-t:                        Set the temperature for the LLM response
 	-d:                        Show debug logging
 
 API Keys:
-	Set your API keys as environment variables:
-		- export OPENAI_API_KEY=<your key>
-		- export ANYSCALE_API_KEY=<your key>
+	- export OPENAI_API_KEY=<your key>
+	- export ANYSCALE_API_KEY=<your key>
+	- export REPLICATE_API_TOKEN=<your key>
 
 Model Options:
 	- OpenAI:
-		- gpt-3.5-turbo, aka: turbo35
-		- gpt-4-turbo-preview, aka: turbopreview
+		- [Default] gpt-3.5-turbo, aka: turbo35
 		- gpt-4-turbo, aka: turbo
+	- Replicate:
+		- [Default] meta-llama-3-8b, aka: l3-8b (default)
+		- meta-llama-3-8b-instruct, aka: l3-8b-instruct
+		- meta-llama-3-70b, aka: l3-70b
+		- meta-llama-3-70b-instruct, aka: l3-70b-instruct
 	- Anyscale:
+		- [Default] mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b (default)
 		- mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
-		- mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
 		- codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
 `
