@@ -1,7 +1,7 @@
 github.com/PuerkitoBio/goquery v1.9.1 h1:mTL6XjbJTZdpfL+Gwl5U2h1l9yEkJjhmlTeV9VPW7UI=
 github.com/PuerkitoBio/goquery v1.9.1/go.mod h1:cW1n6TmIMDoORQU5IU/P1T3tGFunOeXEpGP2WHRwkbY=
-github.com/Ztkent/ai-util v0.4.2 h1:aQ8ArFRH+sQdpMbu/fndWp+l6x6AW825HRTi5JQ2Qgo=
-github.com/Ztkent/ai-util v0.4.2/go.mod h1:Mpp51I7rxC9uB53yP9Vp7HUATST/fTFX7P821HtqCis=
+github.com/Ztkent/ai-util v0.4.3 h1:Oes/0q4jn/Hy46sCNNg6G2Z5uOrh+9E73RfVA6Ao5/o=
+github.com/Ztkent/ai-util v0.4.3/go.mod h1:Mpp51I7rxC9uB53yP9Vp7HUATST/fTFX7P821HtqCis=
 github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsViSLyss=
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
@@ -52,8 +52,8 @@ github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJ
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
-github.com/sashabaranov/go-openai v1.21.0 h1:isAf3zPSD3VLd0pC2/2Q6ZyRK7jzPAaz+X3rjsviaYQ=
-github.com/sashabaranov/go-openai v1.21.0/go.mod h1:lj5b/K+zjTSFxVLijLSTDZuP7adOgerWeFyZLUhAKRg=
+github.com/sashabaranov/go-openai v1.22.0 h1:bjYkELQCbOBMW9B7zi/KA5L4syPfn/3qRvUoyV49Fvs=
+github.com/sashabaranov/go-openai v1.22.0/go.mod h1:lj5b/K+zjTSFxVLijLSTDZuP7adOgerWeFyZLUhAKRg=
 github.com/sirupsen/logrus v1.9.3 h1:dueUQJ1C2q9oE3F7wvmSGAaVtTmUizReu6fjN8uqzbQ=
 github.com/sirupsen/logrus v1.9.3/go.mod h1:naHLuLoDiP4jHNo9R0sCBMtWGeIprob74mVsIT4qYEQ=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
