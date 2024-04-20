@@ -74,7 +74,7 @@ func main() {
 		// Create a new conversation with Moki
 		conv := aiutil.NewConversation(prompts.ConversationPrompt, *maxTokensFlag, *ragFlag)
 		// Check if there is any input from stdin
-		stdinInput := tools.ReadFromStdin()
+		stdinInput := tools.ReadFromStdinPipe()
 		if stdinInput != "" {
 			conv.AddReference("User Input", stdinInput)
 			logger.WithFields(logrus.Fields{
@@ -109,7 +109,7 @@ func main() {
 		}
 
 		// Check if there is any input from stdin
-		stdinInput := tools.ReadFromStdin()
+		stdinInput := tools.ReadFromStdinPipe()
 		if stdinInput != "" {
 			conv.AddReference("User Input", stdinInput)
 			logger.WithFields(logrus.Fields{

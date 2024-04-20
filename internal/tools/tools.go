@@ -6,9 +6,9 @@ import (
 	"strings"
 )
 
-func ReadFromStdin() string {
+func ReadFromStdinPipe() string {
 	info, _ := os.Stdin.Stat()
-	if (info.Mode() & os.ModeCharDevice) == 0 {
+	if (info.Mode() & os.ModeNamedPipe) != 0 {
 		scanner := bufio.NewScanner(os.Stdin)
 		var input strings.Builder
 		for scanner.Scan() {
