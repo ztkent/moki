@@ -33,7 +33,7 @@ require (
 	github.com/pkoukk/tiktoken-go-loader v0.0.1 // indirect
 	github.com/replicate/replicate-go v0.18.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/sashabaranov/go-openai v1.22.0 // indirect
+	github.com/sashabaranov/go-openai v1.23.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
