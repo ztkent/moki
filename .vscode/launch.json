@@ -18,6 +18,14 @@
       "envFile": "${workspaceFolder}/.env",
     },
     {
+      "name": "🖥️ start anyscale 🖥️",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/cmd/moki/moki.go",
+      "args": ["-llm=anyscale", "give me some python code to classify images"],
+      "envFile": "${workspaceFolder}/.env",
+    },
+    {
       "name": "🖥️ conversation 🖥️",
       "type": "go",
       "request": "launch",
