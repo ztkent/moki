@@ -42,8 +42,8 @@ https://github.com/Ztkent/moki/assets/7357311/2b839654-9d34-4307-a76c-598d9c0904
 ## Configuration
 - There are a few options for the API provider:  
   - OpenAI (https://platform.openai.com/docs/overview)  
-  - Replicate (https://replicate.com/docs)
   - Anyscale (https://www.anyscale.com/endpoints)  
+  - Replicate (https://replicate.com/docs)
 ```
 Flags:
   -c:                        Start a conversation with Moki
@@ -57,15 +57,15 @@ Model Options:
   - OpenAI:
     - [Default] gpt-3.5-turbo, aka: turbo35
     - gpt-4-turbo, aka: turbo
+  - Anyscale:
+    - [Default] mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b (default)
+    - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
+    - codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
   - Replicate:
     - [Default] meta-llama-3-8b, aka: l3-8b (default)
     - meta-llama-3-8b-instruct, aka: l3-8b-instruct
     - meta-llama-3-70b, aka: l3-70b
     - meta-llama-3-70b-instruct, aka: l3-70b-instruct
-  - Anyscale:
-    - [Default] mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b (default)
-    - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
-    - codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
 ```
 
 #### Conversation
