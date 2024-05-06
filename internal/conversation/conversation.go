@@ -88,7 +88,7 @@ func GetIntroduction(client aiutil.Client, ctx context.Context) (string, error) 
 	defer cancel()
 
 	// Generate the header for display
-	introChat, err := client.SendCompletionRequest(ctxWithTimeout, aiutil.NewConversation(prompts.ConversationPrompt, 0, false), "We're starting a conversation. Introduce yourself.")
+	introChat, err := client.SendCompletionRequest(ctxWithTimeout, aiutil.NewConversation(prompts.ConversationPrompt, 0, false), "We're starting a conversation. Introduce yourself. Your name is Moki. Only refer to yourself as Moki.")
 	if err != nil {
 		return introChat, err
 	}
