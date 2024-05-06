@@ -3,10 +3,10 @@ module github.com/Ztkent/moki
 go 1.22.0
 
 require (
+	github.com/Ztkent/ai-util v0.5.2
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.26.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/Ztkent/ai-util v0.5.0
 )
 
 require (
