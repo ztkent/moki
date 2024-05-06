@@ -3,13 +3,13 @@
 
 # <img width="40" alt="logo_moki" src="https://github.com/Ztkent/moki/assets/7357311/f1dfb864-3c20-4384-898b-1acc4bb7c92f"> Moki
 
-An AI assistant for the command line.  
+An AI Assistant for the command line.  
 
 Tuned to assist with developer tasks like finding files, installing packages, and git.   
 Conversation mode can explain code snippets, generate unit tests, and scaffold new projects.
 
 ## Usage
-- Install moki:  
+- Install Moki:  
   ```bash
   go install github.com/Ztkent/moki/cmd/moki@latest
   ```
@@ -21,10 +21,10 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
   export REPLICATE_API_TOKEN=<your key>
   ```
 
-- Run the assistant:
+- Run Moki:
   ```bash
   # Ask the assistant a question
-  moki [your message]
+  moki [your question]
 
   # Provide additional context
   cat moki.go | moki [tell me about this code]
