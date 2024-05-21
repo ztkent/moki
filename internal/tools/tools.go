@@ -51,6 +51,7 @@ Model Options:
 	- OpenAI:
 		- [Default] gpt-3.5-turbo, aka: turbo35
 		- gpt-4-turbo, aka: turbo
+		- gpt-4o, aka: gpt4o
 	- Replicate:
 		- [Default] meta-llama-3-8b, aka: l3-8b (default)
 		- meta-llama-3-8b-instruct, aka: l3-8b-instruct

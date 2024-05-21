@@ -57,6 +57,7 @@ Model Options:
   - OpenAI:
     - [Default] gpt-3.5-turbo, aka: turbo35
     - gpt-4-turbo, aka: turbo
+    - gpt-4o, aka: gpt4o
   - Anyscale:
     - [Default] meta-llama-3-8b, aka: l3-8b
     - meta-llama-3-70b, aka: l3-70b
