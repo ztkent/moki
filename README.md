@@ -36,9 +36,6 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
   moki -c -m=turbo -max-tokens=100000 -t=0.5
   ```
 
-## Example
-https://github.com/Ztkent/moki/assets/7357311/2b839654-9d34-4307-a76c-598d9c09048e
-
 ## Configuration
 - There are a few options for the API provider:  
   - OpenAI (https://platform.openai.com/docs/overview)  
