@@ -44,7 +44,6 @@ Flags:
 
 API Keys:
 	- export OPENAI_API_KEY=<your key>
-	- export ANYSCALE_API_KEY=<your key>
 	- export REPLICATE_API_TOKEN=<your key>
 
 Model Options:
@@ -57,8 +56,5 @@ Model Options:
 		- meta-llama-3-8b-instruct, aka: l3-8b-instruct
 		- meta-llama-3-70b, aka: l3-70b
 		- meta-llama-3-70b-instruct, aka: l3-70b-instruct
-	- Anyscale:
-		- [Default] mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b (default)
-		- mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
-		- codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
+
 `

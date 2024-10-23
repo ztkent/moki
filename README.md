@@ -17,7 +17,6 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
 - Set your API key as an environment variable:
   ```bash
   export OPENAI_API_KEY=<your key>
-  export ANYSCALE_API_KEY=<your key>
   export REPLICATE_API_TOKEN=<your key>
   ```
 
@@ -39,7 +38,6 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
 ## Configuration
 - There are a few options for the API provider:  
   - OpenAI (https://platform.openai.com/docs/overview)  
-  - Anyscale (https://www.anyscale.com/endpoints)  
   - Replicate (https://replicate.com/docs)
 ```
 Flags:
@@ -55,12 +53,6 @@ Model Options:
     - [Default] gpt-3.5-turbo, aka: turbo35
     - gpt-4-turbo, aka: turbo
     - gpt-4o, aka: gpt4o
-  - Anyscale:
-    - [Default] meta-llama-3-8b, aka: l3-8b
-    - meta-llama-3-70b, aka: l3-70b
-    - mistralai/Mixtral-8x7B-Instruct-v0.1, aka: m8x7b
-    - mistralai/Mistral-7B-Instruct-v0.1, aka: m7b
-    - codellama/CodeLlama-70b-Instruct-hf, aka: cl70b
   - Replicate:
     - [Default] meta-llama-3-8b, aka: l3-8b
     - meta-llama-3-8b-instruct, aka: l3-8b-instruct
@@ -79,7 +71,6 @@ moki -c
 By default the assistant will use OpenAI. To use another, run the assistant with a flag. 
 ```bash
 moki -llm=openai
-moki -llm=anyscale 
 moki -llm=replicate 
 ```
 
