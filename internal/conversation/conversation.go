@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	aiutil "github.com/Ztkent/ai-util"
-	"github.com/Ztkent/moki/internal/prompts"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	aiutil "github.com/ztkent/ai-util"
+	"github.com/ztkent/moki/internal/prompts"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
   /\/\   ___ | | _(_)
  /    \ / _ \| |/ / |
 / /\/\ \ (_) |   <| |  AI Assistant for the Command Line
-\/    \/\___/|_|\_\_|  [https://github.com/Ztkent/moki]`
+\/    \/\___/|_|\_\_|  [https://github.com/ztkent/moki]`
 )
 
 // Define exit commands as a slice
@@ -99,7 +99,7 @@ func GetIntroduction(client aiutil.Client, ctx context.Context) (string, error) 
 func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
-	modifiedInput, resourcesAdded, err := aiutil.ManageRAG(conv, userInput)
+	modifiedInput, resourcesAdded, err := aiutil.ManageResources(conv, userInput)
 	if err != nil {
 		return err
 	}

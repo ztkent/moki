@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	aiutil "github.com/Ztkent/ai-util"
+	aiutil "github.com/ztkent/ai-util"
 )
 
 func LogChatStream(client aiutil.Client, conv *aiutil.Conversation, userInput string) error {
@@ -18,7 +18,7 @@ func LogChatStream(client aiutil.Client, conv *aiutil.Conversation, userInput st
 
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
-	modifiedInput, resourcesAdded, err := aiutil.ManageRAG(conv, userInput)
+	modifiedInput, resourcesAdded, err := aiutil.ManageResources(conv, userInput)
 	if err != nil {
 		return err
 	}

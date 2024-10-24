@@ -6,12 +6,12 @@ import (
 	"os"
 	"strings"
 
-	aiutil "github.com/Ztkent/ai-util"
-	"github.com/Ztkent/moki/internal/conversation"
-	"github.com/Ztkent/moki/internal/prompts"
-	"github.com/Ztkent/moki/internal/request"
-	"github.com/Ztkent/moki/internal/tools"
 	"github.com/sirupsen/logrus"
+	aiutil "github.com/ztkent/ai-util"
+	"github.com/ztkent/moki/internal/conversation"
+	"github.com/ztkent/moki/internal/prompts"
+	"github.com/ztkent/moki/internal/request"
+	"github.com/ztkent/moki/internal/tools"
 )
 
 /*
@@ -46,7 +46,7 @@ func main() {
 	modelFlag := flag.String("m", "", "Set the model to use for the LLM response")
 	temperatureFlag := flag.Float64("t", aiutil.DefaultTemp, "Set the temperature for the LLM response")
 	maxTokensFlag := flag.Int("max-tokens", aiutil.DefaultMaxTokens, "Set the maximum number of tokens to generate per response")
-	ragFlag := flag.Bool("r", true, "Enable RAG functionality")
+	resourcesFlag := flag.Bool("r", true, "Enable resources functionality")
 	flagFlag := flag.Bool("flags", false, "Log the flags used for this request")
 
 	// Parse the flags
@@ -61,7 +61,7 @@ func main() {
 			"modelFlag":       *modelFlag,
 			"temperatureFlag": *temperatureFlag,
 			"maxTokensFlag":   *maxTokensFlag,
-			"ragFlag":         *ragFlag,
+			"resourcesFlag":   *resourcesFlag,
 		}).Infoln("Flags")
 	}
 
@@ -86,7 +86,7 @@ func main() {
 
 	if *convFlag {
 		// Create a new conversation with Moki
-		conv := aiutil.NewConversation(prompts.ConversationPrompt, *maxTokensFlag, *ragFlag)
+		conv := aiutil.NewConversation(prompts.ConversationPrompt, *maxTokensFlag, *resourcesFlag)
 		// Check if there is any input from stdin
 		stdinInput := tools.ReadFromStdinPipe()
 		if stdinInput != "" {
@@ -106,7 +106,7 @@ func main() {
 		return
 	} else {
 		// Create a new conversation with Moki
-		conv := aiutil.NewConversation(prompts.RequestPrompt, *maxTokensFlag, *ragFlag)
+		conv := aiutil.NewConversation(prompts.RequestPrompt, *maxTokensFlag, *resourcesFlag)
 		// Seed the conversation with some initial context to improve the AI responses
 		conv.SeedConversation(map[string]string{
 			"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",

@@ -27,7 +27,7 @@ var HelpMessage = `Usage:
 	# Provide additional context
 	cat moki.go | moki [tell me about this code]
 	moki [tell me about this code]    -file:moki.go
-	moki [tell me about this project] -url:https://github.com/Ztkent/moki
+	moki [tell me about this project] -url:https://github.com/ztkent/moki
 
 	# Start a conversation with the assistant
 	moki -c
