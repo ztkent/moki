@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	aiutil "github.com/ztkent/ai-util"
 	"github.com/ztkent/moki/internal/conversation"
 	"github.com/ztkent/moki/internal/prompts"
-	"github.com/ztkent/moki/internal/request"
 	"github.com/ztkent/moki/internal/tools"
 )
 
@@ -87,15 +88,6 @@ func main() {
 	if *convFlag {
 		// Create a new conversation with Moki
 		conv := aiutil.NewConversation(prompts.ConversationPrompt, *maxTokensFlag, *resourcesFlag)
-		// Check if there is any input from stdin
-		stdinInput := tools.ReadFromStdinPipe()
-		if stdinInput != "" {
-			conv.AddReference("User Input", stdinInput)
-			logger.WithFields(logrus.Fields{
-				"Reference": stdinInput,
-			}).Debugln("Added new reference from stdin")
-		}
-
 		// Start the conversation
 		err := conversation.StartConversationCLI(client, conv)
 		if err != nil {
@@ -104,39 +96,68 @@ func main() {
 			}).Errorln("Conversation Failed")
 		}
 		return
-	} else {
-		// Create a new conversation with Moki
-		conv := aiutil.NewConversation(prompts.RequestPrompt, *maxTokensFlag, *resourcesFlag)
-		// Seed the conversation with some initial context to improve the AI responses
-		conv.SeedConversation(map[string]string{
-			"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
-			"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",
-			"list all files in a directory":                        "ls -la",
-			"ammend specific old commit with commit sha":           "git rebase -i <commit-sha>",
-			"run a specific command on a specific day of the week": "echo \"0 0 * * <day-of-week> <command>\" | sudo tee -a /etc/crontab",
-		})
+	}
 
-		// Require an input
-		if len(flag.Args()) == 0 {
-			fmt.Println("Please provide a question to ask Moki")
-			return
-		}
+	// Send a request to Moki
+	conv := aiutil.NewConversation(prompts.RequestPrompt, *maxTokensFlag, *resourcesFlag)
+	// Seed the conversation with some initial context to improve the AI responses
+	conv.SeedConversation(map[string]string{
+		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
+		"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",
+		"list all files in a directory":                        "ls -la",
+		"ammend specific old commit with commit sha":           "git rebase -i <commit-sha>",
+		"run a specific command on a specific day of the week": "echo \"0 0 * * <day-of-week> <command>\" | sudo tee -a /etc/crontab",
+	})
 
-		// Check if there is any input from stdin
-		stdinInput := tools.ReadFromStdinPipe()
-		if stdinInput != "" {
-			conv.AddReference("User Input", stdinInput)
-			logger.WithFields(logrus.Fields{
-				"Reference": stdinInput,
-			}).Debugln("Added new reference from stdin")
-		}
+	// Require an input
+	if len(flag.Args()) == 0 {
+		fmt.Println("Please provide a question to ask Moki")
+		return
+	}
 
-		// Respond with a single request to Moki
-		err = request.LogChatStream(client, conv, strings.Join(flag.Args(), " "))
-		if err != nil {
-			logger.WithFields(logrus.Fields{
-				"error": err,
-			}).Errorln("Failed to log new chat stream")
+	// Respond with a single request to Moki
+	err = LogChatStream(client, conv, strings.Join(flag.Args(), " "))
+	if err != nil {
+		logger.WithFields(logrus.Fields{
+			"error": err,
+		}).Errorln("Failed to log new chat stream")
+	}
+}
+
+func LogChatStream(client aiutil.Client, conv *aiutil.Conversation, userInput string) error {
+	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+
+	// Start the chat with a fresh conversation, and the users prompt
+	responseChan, errChan := make(chan string), make(chan error)
+
+	// Check if the user's input contains a resource command
+	// If so, manage the resource and add the result to the conversation
+	modifiedInput, resourcesAdded, err := aiutil.ManageResources(conv, userInput)
+	if err != nil {
+		return err
+	}
+	if len(modifiedInput) == 0 {
+		fmt.Println("Please provide a message to continue the conversation.")
+		return nil
+	} else if len(resourcesAdded) > 0 {
+		fmt.Println("Resources added to conversation: ", strings.Join(resourcesAdded, ","))
+	}
+
+	go client.SendStreamRequest(oneMin, conv, modifiedInput, responseChan, errChan)
+	// Read the response from the channel as it is streamed
+	for {
+		select {
+		case response, ok := <-responseChan:
+			if !ok {
+				// Request channel closed
+				fmt.Println()
+				return nil
+			}
+			fmt.Print(response)
+		case err := <-errChan:
+			fmt.Println()
+			return err
 		}
 	}
 }

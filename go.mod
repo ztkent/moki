@@ -6,7 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/ztkent/ai-util v0.7.0
+	github.com/ztkent/ai-util v0.7.1
 )
 
 require (
