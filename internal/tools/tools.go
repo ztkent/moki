@@ -2,8 +2,12 @@ package tools
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"regexp"
 	"strings"
+
+	aiutil "github.com/ztkent/ai-util"
 )
 
 func ReadFromStdinPipe() string {
@@ -18,6 +22,43 @@ func ReadFromStdinPipe() string {
 		return input.String()
 	}
 	return ""
+}
+
+// Determine if the user's input contains a resource command
+// There is usually some limit to the number of tokens
+func ManageResources(conv *aiutil.Conversation, userInput string) (string, []string, error) {
+	resourcesFound := []string{}
+	if conv == nil {
+		return userInput, resourcesFound, fmt.Errorf("Failed to ManageResources: Conversation is nil")
+	} else if len(userInput) == 0 {
+		return userInput, resourcesFound, nil
+	}
+
+	// Check if there is any input from stdin
+	stdinInput := ReadFromStdinPipe()
+	if stdinInput != "" {
+		resourcesFound = append(resourcesFound, "stdin:"+stdinInput)
+		conv.AddReference("User Input", stdinInput)
+	}
+
+	// Only supporting URL and File resources for now
+	var resourceCommands = []string{"url", "file"}
+	for _, cmd := range resourceCommands {
+		re := regexp.MustCompile(fmt.Sprintf(`\-%s:(.*)`, cmd))
+		matches := re.FindAllStringSubmatch(strings.ToLower(userInput), -1)
+		for _, match := range matches {
+			if len(match) > 1 {
+				resource := strings.TrimSpace(match[1])
+				resourcesFound = append(resourcesFound, cmd+":"+resource)
+				err := aiutil.AddResource(conv, resource, cmd)
+				if err != nil {
+					return userInput, resourcesFound, err
+				}
+				userInput = strings.Replace(userInput, "-"+cmd+":"+resource, "", -1)
+			}
+		}
+	}
+	return userInput, resourcesFound, nil
 }
 
 var HelpMessage = `Usage:

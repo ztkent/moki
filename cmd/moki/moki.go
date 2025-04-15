@@ -43,8 +43,8 @@ func main() {
 	// Define the flags
 	helpFlag := flag.Bool("h", false, "Show this message")
 	convFlag := flag.Bool("c", false, "Start a conversation with Moki")
-	aiFlag := flag.String("llm", string(aiutil.OpenAI), "Selct the LLM provider, either OpenAI or Replicate")
-	modelFlag := flag.String("m", "", "Set the model to use for the LLM response")
+	aiFlag := flag.String("llm", string(aiutil.OpenAI), "Select the LLM provider, either OpenAI or Replicate")
+	modelFlag := flag.String("m", "", "Set the model to use for the LLM response (uses provider default if empty)")
 	temperatureFlag := flag.Float64("t", aiutil.DefaultTemp, "Set the temperature for the LLM response")
 	maxTokensFlag := flag.Int("max-tokens", aiutil.DefaultMaxTokens, "Set the maximum number of tokens to generate per response")
 	resourcesFlag := flag.Bool("r", true, "Enable resources functionality")
@@ -72,23 +72,41 @@ func main() {
 		return
 	}
 
-	//  Connect to AI Client
-	client, err := aiutil.NewAIClient(*aiFlag, *modelFlag, *temperatureFlag)
+	// Build AI Client options from flags
+	clientOptions := []aiutil.Option{
+		aiutil.WithProvider(*aiFlag),
+		aiutil.WithTemperature(*temperatureFlag),
+		aiutil.WithMaxTokens(*maxTokensFlag),
+	}
+
+	// Only set the model if the flag is explicitly provided
+	if *modelFlag != "" {
+		clientOptions = append(clientOptions, aiutil.WithModel(*modelFlag))
+	}
+
+	// Connect to AI Client using functional options
+	client, err := aiutil.NewAIClient(clientOptions...)
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"error": err,
 		}).Errorln("Failed to connect to the AI client")
 		return
 	}
+
+	// Log the actual configuration being used by the client
 	logger.WithFields(logrus.Fields{
-		"Model":    *modelFlag,
-		"Provider": *aiFlag,
-	}).Debugln("Starting AI Client")
+		"Config": client.GetConfig(),
+	}).Debugln("Started AI Client")
+
+	// Determine the max tokens to use for conversations, respecting client config
+	conversationMaxTokens := aiutil.DefaultMaxTokens
+	if client.GetConfig().MaxTokens != nil {
+		conversationMaxTokens = *client.GetConfig().MaxTokens
+	}
 
 	if *convFlag {
 		// Create a new conversation with Moki
-		conv := aiutil.NewConversation(prompts.ConversationPrompt, *maxTokensFlag, *resourcesFlag)
-		// Start the conversation
+		conv := aiutil.NewConversation(prompts.ConversationPrompt, conversationMaxTokens, *resourcesFlag)
 		err := conversation.StartConversationCLI(client, conv)
 		if err != nil {
 			logger.WithFields(logrus.Fields{
@@ -99,7 +117,7 @@ func main() {
 	}
 
 	// Send a request to Moki
-	conv := aiutil.NewConversation(prompts.RequestPrompt, *maxTokensFlag, *resourcesFlag)
+	conv := aiutil.NewConversation(prompts.RequestPrompt, conversationMaxTokens, *resourcesFlag)
 	// Seed the conversation with some initial context to improve the AI responses
 	conv.SeedConversation(map[string]string{
 		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
@@ -132,8 +150,7 @@ func LogChatStream(client aiutil.Client, conv *aiutil.Conversation, userInput st
 	responseChan, errChan := make(chan string), make(chan error)
 
 	// Check if the user's input contains a resource command
-	// If so, manage the resource and add the result to the conversation
-	modifiedInput, resourcesAdded, err := aiutil.ManageResources(conv, userInput)
+	modifiedInput, resourcesAdded, err := tools.ManageResources(conv, userInput)
 	if err != nil {
 		return err
 	}

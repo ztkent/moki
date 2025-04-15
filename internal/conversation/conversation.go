@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	aiutil "github.com/ztkent/ai-util"
 	"github.com/ztkent/moki/internal/prompts"
+	"github.com/ztkent/moki/internal/tools"
 )
 
 const (
@@ -99,7 +100,7 @@ func GetIntroduction(client aiutil.Client, ctx context.Context) (string, error) 
 func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
 	// Check if the user's input contains a resource command
 	// If so, manage the resource and add the result to the conversation
-	modifiedInput, resourcesAdded, err := aiutil.ManageResources(conv, userInput)
+	modifiedInput, resourcesAdded, err := tools.ManageResources(conv, userInput)
 	if err != nil {
 		return err
 	}
@@ -141,32 +142,4 @@ func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx cont
 			}
 		}
 	}
-}
-
-// Check if the user's input is a help command
-func isHelpCommand(input string) bool {
-	for _, command := range helpCommands {
-		if input == command {
-			return true
-		}
-	}
-	return false
-}
-
-// Check if the user's input is an exit command
-func isExitCommand(input string) bool {
-	for _, command := range exitCommands {
-		if input == command {
-			return true
-		}
-	}
-	return false
-}
-
-// printHelpMessage prints the help message
-func printHelpMessage() {
-	fmt.Println("--------------------------------------------------")
-	fmt.Println("moki: ")
-	fmt.Println("    Type 'exit', 'quit', or 'bye' to end the conversation.")
-	fmt.Println("    Type your message to continue the conversation.")
 }
