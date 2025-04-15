@@ -95,7 +95,14 @@ func main() {
 
 	// Log the actual configuration being used by the client
 	logger.WithFields(logrus.Fields{
-		"Config": client.GetConfig(),
+		"Config": map[string]interface{}{
+			"Provider":    client.GetConfig().Provider,
+			"Model":       client.GetConfig().Model,
+			"BaseURL":     client.GetConfig().BaseURL,
+			"Temperature": client.GetConfig().Temperature,
+			"TopP":        client.GetConfig().TopP,
+			"MaxTokens":   client.GetConfig().MaxTokens,
+		},
 	}).Debugln("Started AI Client")
 
 	// Determine the max tokens to use for conversations, respecting client config
