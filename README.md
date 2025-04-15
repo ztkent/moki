@@ -4,7 +4,7 @@
 
 An AI Assistant for the command line.  
 
-Tuned to assist with developer tasks like finding files, installing packages, and git.   
+Tuned to assist with developer tasks like finding files, installing packages, and git.  
 Conversation mode can explain code snippets, generate unit tests, and scaffold new projects.
 
 ## Usage
@@ -41,8 +41,8 @@ Conversation mode can explain code snippets, generate unit tests, and scaffold n
 ## Configuration
 
 - There are a few options for the API provider:  
-  - OpenAI (https://platform.openai.com/docs/overview)  
-  - Replicate (https://replicate.com/docs)
+  - OpenAI (<https://platform.openai.com/docs/overview>)  
+  - Replicate (<https://replicate.com/docs>)
 
 ```bash
 Flags:
@@ -58,9 +58,10 @@ Model Options:
     - gpt-3.5-turbo, aka: turbo35
     - gpt-4-turbo, aka: turbo
     - gpt-4o
-    - [Default] gpt-4o-mini
+    - gpt-4o-mini
     - o1-preview
     - o1-mini
+    - [Default] gpt-4.1
   - Replicate:
     - [Default] meta-llama-3-8b, aka: l3-8b
     - meta-llama-3-8b-instruct, aka: l3-8b-instruct
