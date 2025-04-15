@@ -3,6 +3,7 @@ package conversation
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -23,17 +24,13 @@ const (
 \/    \/\___/|_|\_\_|  [https://github.com/ztkent/moki]`
 )
 
-// Define exit commands as a slice
-var exitCommands = []string{"exit", "quit", "bye", ":q", "end", "q"}
-var helpCommands = []string{"help", "?"}
+var exitCommands = []string{"exit", "quit", ":q!"}
 
 // StartConversationCLI starts a conversation with Moki via the CLI
 func StartConversationCLI(client aiutil.Client, conv *aiutil.Conversation) error {
-	// Set the maximum conversation time
 	ctx, cancel := context.WithTimeout(context.Background(), MaxConversationTime)
 	defer cancel()
 
-	// Start the chat with a fresh conversation, and get the system greeting
 	fmt.Print(MokiHeader + "\n\n")
 	introChat, err := GetIntroduction(client, ctx)
 	if err != nil {
@@ -41,11 +38,11 @@ func StartConversationCLI(client aiutil.Client, conv *aiutil.Conversation) error
 	}
 	fmt.Println("Moki: " + introChat)
 
-	// Start a conversation with the user via CLI
 	return StartChat(ctx, client, conv)
 }
 
-// StartChat handles the conversation with the user
+// StartChat starts a chat session with Moki
+// It handles user input and manages the conversation flow.
 func StartChat(ctx context.Context, client aiutil.Client, conv *aiutil.Conversation) error {
 	for {
 		done, err := func() (bool, error) {
@@ -67,7 +64,10 @@ func StartChat(ctx context.Context, client aiutil.Client, conv *aiutil.Conversat
 				fmt.Println("You: " + m.Value())
 			}
 			// Handle user's message
-			err := HandleUserMessage(client, conv, ctx, m.Value())
+			shouldExit, err := HandleUserMessage(client, conv, ctx, m.Value())
+			if shouldExit {
+				return true, nil
+			}
 			if err != nil {
 				return false, err
 			}
@@ -83,12 +83,11 @@ func StartChat(ctx context.Context, client aiutil.Client, conv *aiutil.Conversat
 	return nil
 }
 
-// GetIntroduction sends the initial message to start the conversation
+// GetIntroduction sends an introduction request to Moki and returns the response.
 func GetIntroduction(client aiutil.Client, ctx context.Context) (string, error) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, SingleRequestTime)
 	defer cancel()
 
-	// Generate the header for display
 	introChat, err := client.SendCompletionRequest(ctxWithTimeout, aiutil.NewConversation(prompts.ConversationPrompt, 0, false), "We're starting a conversation. Introduce yourself. Your name is Moki. Only refer to yourself as Moki.")
 	if err != nil {
 		return introChat, err
@@ -96,41 +95,39 @@ func GetIntroduction(client aiutil.Client, ctx context.Context) (string, error) 
 	return introChat, err
 }
 
-// handleUserMessage handles the user's message
-func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) error {
-	// Check if the user's input contains a resource command
-	// If so, manage the resource and add the result to the conversation
+// HandleUserMessage handles the user's message and returns true if the user wants to exit.
+func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) (bool, error) {
 	modifiedInput, resourcesAdded, err := tools.ManageResources(conv, userInput)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	// Check if the user provided a message
-	if len(modifiedInput) == 0 {
-		fmt.Println("Please provide a message to continue the conversation.")
-		return nil
+	if slices.Contains(exitCommands, strings.ToLower(strings.TrimSpace(modifiedInput))) {
+		fmt.Println("Goodbye!")
+		return true, nil
+	}
+
+	if len(modifiedInput) == 0 && len(resourcesAdded) == 0 {
+		fmt.Println("Please provide a message or command to continue the conversation.")
+		return false, nil
 	} else if len(resourcesAdded) > 0 {
 		fmt.Println("Resources added to conversation: ", strings.Join(resourcesAdded, ","))
 	}
 
-	// Send the user's input to the LLM 🤖, wait at most 1 minute.
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, SingleRequestTime)
 	defer cancel()
 
 	responseChan, errChan := make(chan string), make(chan error)
 	go client.SendStreamRequest(ctxWithTimeout, conv, modifiedInput, responseChan, errChan)
 
-	// Read the response from the channel as it is streamed
 	firstResponse := true
 	for {
 		select {
 		case response, ok := <-responseChan:
 			if !ok {
-				// Request channel closed
-				return nil
+				return false, nil
 			}
 			if firstResponse {
-				// Format the first response
 				fmt.Print("Moki: ")
 				defer fmt.Println()
 				firstResponse = false
@@ -138,7 +135,7 @@ func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx cont
 			fmt.Print(response)
 		case err := <-errChan:
 			if err != nil {
-				return err
+				return false, err
 			}
 		}
 	}

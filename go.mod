@@ -2,13 +2,11 @@ module github.com/ztkent/moki
 
 go 1.23
 
-replace github.com/ztkent/ai-util => ../ai-util
-
 require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.1.2
 	github.com/sirupsen/logrus v1.9.3
-	github.com/ztkent/ai-util v0.7.2
+	github.com/ztkent/ai-util v1.0.0
 )
 
 require (

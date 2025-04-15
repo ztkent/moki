@@ -89,13 +89,16 @@ API Keys:
 
 Model Options:
 	- OpenAI:
-		- [Default] gpt-3.5-turbo, aka: turbo35
+		- gpt-3.5-turbo, aka: turbo35
 		- gpt-4-turbo, aka: turbo
-		- gpt-4o, aka: gpt4o
+		- gpt-4o
+		- gpt-4o-mini
+		- o1-preview
+		- o1-mini
+		- [Default] gpt-4.1
 	- Replicate:
-		- [Default] meta-llama-3-8b, aka: l3-8b (default)
+		- [Default] meta-llama-3-8b, aka: l3-8b
 		- meta-llama-3-8b-instruct, aka: l3-8b-instruct
 		- meta-llama-3-70b, aka: l3-70b
 		- meta-llama-3-70b-instruct, aka: l3-70b-instruct
-
 `
