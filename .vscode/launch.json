@@ -36,6 +36,15 @@
       "console": "integratedTerminal",
     },
     {
+      "name": "🖥️ gemini conversation 🖥️",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/cmd/moki/moki.go",
+      "args": ["-c", "-llm=google"],
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+    },
+    {
       "name": "🖥️ run moki with stdin 🖥️",
       "type": "go",
       "request": "launch",
