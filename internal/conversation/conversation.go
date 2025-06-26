@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	aiutil "github.com/ztkent/ai-util"
+	"github.com/ztkent/ai-util/types"
 	"github.com/ztkent/moki/internal/prompts"
-	"github.com/ztkent/moki/internal/tools"
 )
 
 const (
@@ -27,7 +27,7 @@ const (
 var exitCommands = []string{"exit", "quit", ":q!"}
 
 // StartConversationCLI starts a conversation with Moki via the CLI
-func StartConversationCLI(client aiutil.Client, conv *aiutil.Conversation) error {
+func StartConversationCLI(client *aiutil.Client, conv *aiutil.Conversation) error {
 	ctx, cancel := context.WithTimeout(context.Background(), MaxConversationTime)
 	defer cancel()
 
@@ -43,7 +43,7 @@ func StartConversationCLI(client aiutil.Client, conv *aiutil.Conversation) error
 
 // StartChat starts a chat session with Moki
 // It handles user input and manages the conversation flow.
-func StartChat(ctx context.Context, client aiutil.Client, conv *aiutil.Conversation) error {
+func StartChat(ctx context.Context, client *aiutil.Client, conv *aiutil.Conversation) error {
 	for {
 		done, err := func() (bool, error) {
 			textInput := textinput.New()
@@ -84,59 +84,50 @@ func StartChat(ctx context.Context, client aiutil.Client, conv *aiutil.Conversat
 }
 
 // GetIntroduction sends an introduction request to Moki and returns the response.
-func GetIntroduction(client aiutil.Client, ctx context.Context) (string, error) {
+func GetIntroduction(client *aiutil.Client, ctx context.Context) (string, error) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, SingleRequestTime)
 	defer cancel()
 
-	introChat, err := client.SendCompletionRequest(ctxWithTimeout, aiutil.NewConversation(prompts.ConversationPrompt, 0, false), "We're starting a conversation. Introduce yourself. Your name is Moki. Only refer to yourself as Moki.")
+	// Create a temporary conversation for the introduction
+	conv := client.NewConversation(&aiutil.ConversationConfig{
+		SystemPrompt: prompts.ConversationPrompt,
+		MaxTokens:    1000,
+		AutoTruncate: true,
+	})
+
+	resp, err := conv.Send(ctxWithTimeout, "We're starting a conversation. Introduce yourself. Your name is Moki. Only refer to yourself as Moki.", "")
 	if err != nil {
-		return introChat, err
+		return "", err
 	}
-	return introChat, err
+
+	return resp.Message.GetText(), nil
 }
 
 // HandleUserMessage handles the user's message and returns true if the user wants to exit.
-func HandleUserMessage(client aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) (bool, error) {
-	modifiedInput, resourcesAdded, err := tools.ManageResources(conv, userInput)
-	if err != nil {
-		return false, err
-	}
-
-	if slices.Contains(exitCommands, strings.ToLower(strings.TrimSpace(modifiedInput))) {
+func HandleUserMessage(client *aiutil.Client, conv *aiutil.Conversation, ctx context.Context, userInput string) (bool, error) {
+	if slices.Contains(exitCommands, strings.ToLower(strings.TrimSpace(userInput))) {
 		fmt.Println("Goodbye!")
 		return true, nil
 	}
 
-	if len(modifiedInput) == 0 && len(resourcesAdded) == 0 {
+	if len(userInput) == 0 {
 		fmt.Println("Please provide a message or command to continue the conversation.")
 		return false, nil
-	} else if len(resourcesAdded) > 0 {
-		fmt.Println("Resources added to conversation: ", strings.Join(resourcesAdded, ","))
 	}
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, SingleRequestTime)
 	defer cancel()
 
-	responseChan, errChan := make(chan string), make(chan error)
-	go client.SendStreamRequest(ctxWithTimeout, conv, modifiedInput, responseChan, errChan)
+	fmt.Print("Moki: ")
+	defer fmt.Println()
 
-	firstResponse := true
-	for {
-		select {
-		case response, ok := <-responseChan:
-			if !ok {
-				return false, nil
-			}
-			if firstResponse {
-				fmt.Print("Moki: ")
-				defer fmt.Println()
-				firstResponse = false
-			}
-			fmt.Print(response)
-		case err := <-errChan:
-			if err != nil {
-				return false, err
-			}
+	// Use the streaming API
+	err := conv.SendStream(ctxWithTimeout, userInput, "", func(ctx context.Context, response *types.StreamResponse) error {
+		if response.Delta != nil && response.Delta.TextData != "" {
+			fmt.Print(response.Delta.TextData)
 		}
-	}
+		return nil
+	})
+
+	return false, err
 }

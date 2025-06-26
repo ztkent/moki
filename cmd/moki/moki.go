@@ -10,6 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	aiutil "github.com/ztkent/ai-util"
+	"github.com/ztkent/ai-util/types"
 	"github.com/ztkent/moki/internal/conversation"
 	"github.com/ztkent/moki/internal/prompts"
 	"github.com/ztkent/moki/internal/tools"
@@ -43,11 +44,10 @@ func main() {
 	// Define the flags
 	helpFlag := flag.Bool("h", false, "Show this message")
 	convFlag := flag.Bool("c", false, "Start a conversation with Moki")
-	aiFlag := flag.String("llm", string(aiutil.OpenAI), "Select the LLM provider, either OpenAI or Replicate")
+	aiFlag := flag.String("llm", "openai", "Select the LLM provider: openai, replicate, or google")
 	modelFlag := flag.String("m", "", "Set the model to use for the LLM response (uses provider default if empty)")
-	temperatureFlag := flag.Float64("t", aiutil.DefaultTemp, "Set the temperature for the LLM response")
-	maxTokensFlag := flag.Int("max-tokens", aiutil.DefaultMaxTokens, "Set the maximum number of tokens to generate per response")
-	resourcesFlag := flag.Bool("r", true, "Enable resources functionality")
+	temperatureFlag := flag.Float64("t", 0.7, "Set the temperature for the LLM response")
+	maxTokensFlag := flag.Int("max-tokens", 4096, "Set the maximum number of tokens to generate per response")
 	flagFlag := flag.Bool("flags", false, "Log the flags used for this request")
 
 	// Parse the flags
@@ -62,7 +62,6 @@ func main() {
 			"modelFlag":       *modelFlag,
 			"temperatureFlag": *temperatureFlag,
 			"maxTokensFlag":   *maxTokensFlag,
-			"resourcesFlag":   *resourcesFlag,
 		}).Infoln("Flags")
 	}
 
@@ -72,48 +71,28 @@ func main() {
 		return
 	}
 
-	// Build AI Client options from flags
-	clientOptions := []aiutil.Option{
-		aiutil.WithProvider(*aiFlag),
-		aiutil.WithTemperature(*temperatureFlag),
-		aiutil.WithMaxTokens(*maxTokensFlag),
-	}
-
-	// Only set the model if the flag is explicitly provided
-	if *modelFlag != "" {
-		clientOptions = append(clientOptions, aiutil.WithModel(*modelFlag))
-	}
-
-	// Connect to AI Client using functional options
-	client, err := aiutil.NewAIClient(clientOptions...)
+	// Create AI client using the new builder pattern
+	client, err := createAIClient(*aiFlag, *modelFlag, *temperatureFlag, *maxTokensFlag)
 	if err != nil {
 		logger.WithFields(logrus.Fields{
 			"error": err,
 		}).Errorln("Failed to connect to the AI client")
 		return
 	}
+	defer client.Close()
 
-	// Log the actual configuration being used by the client
 	logger.WithFields(logrus.Fields{
-		"Config": map[string]interface{}{
-			"Provider":    client.GetConfig().Provider,
-			"Model":       client.GetConfig().Model,
-			"BaseURL":     client.GetConfig().BaseURL,
-			"Temperature": client.GetConfig().Temperature,
-			"TopP":        client.GetConfig().TopP,
-			"MaxTokens":   client.GetConfig().MaxTokens,
-		},
+		"provider": *aiFlag,
+		"model":    *modelFlag,
 	}).Debugln("Started AI Client")
-
-	// Determine the max tokens to use for conversations, respecting client config
-	conversationMaxTokens := aiutil.DefaultMaxTokens
-	if client.GetConfig().MaxTokens != nil {
-		conversationMaxTokens = *client.GetConfig().MaxTokens
-	}
 
 	if *convFlag {
 		// Create a new conversation with Moki
-		conv := aiutil.NewConversation(prompts.ConversationPrompt, conversationMaxTokens, *resourcesFlag)
+		conv := client.NewConversation(&aiutil.ConversationConfig{
+			SystemPrompt: prompts.ConversationPrompt,
+			MaxTokens:    *maxTokensFlag,
+			AutoTruncate: true,
+		})
 		err := conversation.StartConversationCLI(client, conv)
 		if err != nil {
 			logger.WithFields(logrus.Fields{
@@ -124,15 +103,25 @@ func main() {
 	}
 
 	// Send a request to Moki
-	conv := aiutil.NewConversation(prompts.RequestPrompt, conversationMaxTokens, *resourcesFlag)
+	conv := client.NewConversation(&aiutil.ConversationConfig{
+		SystemPrompt: prompts.RequestPrompt,
+		MaxTokens:    *maxTokensFlag,
+		AutoTruncate: true,
+	})
+
 	// Seed the conversation with some initial context to improve the AI responses
-	conv.SeedConversation(map[string]string{
+	seedMessages := map[string]string{
 		"install Python 3.9 on Ubuntu":                         "sudo apt update && sudo apt install python3.9",
 		"python regex to match a URL?":                         "^https?://[^/\\s]+/\\S+$",
 		"list all files in a directory":                        "ls -la",
 		"ammend specific old commit with commit sha":           "git rebase -i <commit-sha>",
 		"run a specific command on a specific day of the week": "echo \"0 0 * * <day-of-week> <command>\" | sudo tee -a /etc/crontab",
-	})
+	}
+
+	for question, answer := range seedMessages {
+		conv.AddUserMessage(question)
+		conv.AddAssistantMessage(answer)
+	}
 
 	// Require an input
 	if len(flag.Args()) == 0 {
@@ -149,39 +138,74 @@ func main() {
 	}
 }
 
-func LogChatStream(client aiutil.Client, conv *aiutil.Conversation, userInput string) error {
+// createAIClient creates an AI client using the new builder pattern
+func createAIClient(provider, model string, temperature float64, maxTokens int) (*aiutil.Client, error) {
+	builder := aiutil.NewAIClient().
+		WithDefaultProvider(provider).
+		WithDefaultTemperature(temperature).
+		WithDefaultMaxTokens(maxTokens)
+
+	// Set model if provided
+	if model != "" {
+		builder = builder.WithDefaultModel(model)
+	}
+
+	// Configure providers based on the selected provider
+	switch provider {
+	case "openai":
+		apiKey := os.Getenv("OPENAI_API_KEY")
+		if apiKey == "" {
+			return nil, fmt.Errorf("OPENAI_API_KEY environment variable is required")
+		}
+		builder = builder.WithOpenAI(apiKey)
+		if model == "" {
+			builder = builder.WithDefaultModel("gpt-3.5-turbo")
+		}
+
+	case "replicate":
+		apiKey := os.Getenv("REPLICATE_API_TOKEN")
+		if apiKey == "" {
+			return nil, fmt.Errorf("REPLICATE_API_TOKEN environment variable is required")
+		}
+		builder = builder.WithReplicate(apiKey)
+		if model == "" {
+			builder = builder.WithDefaultModel("meta/meta-llama-3-8b-instruct")
+		}
+
+	case "google":
+		apiKey := os.Getenv("GOOGLE_API_KEY")
+		if apiKey == "" {
+			return nil, fmt.Errorf("GOOGLE_API_KEY environment variable is required")
+		}
+		projectID := os.Getenv("GOOGLE_PROJECT_ID") // Optional for Gemini API
+		builder = builder.WithGoogle(apiKey, projectID)
+		if model == "" {
+			builder = builder.WithDefaultModel("gemini-2.0-flash")
+		}
+
+	default:
+		return nil, fmt.Errorf("unsupported provider: %s (supported: openai, replicate, google)", provider)
+	}
+
+	return builder.Build()
+}
+
+func LogChatStream(client *aiutil.Client, conv *aiutil.Conversation, userInput string) error {
 	oneMin, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
 
-	// Start the chat with a fresh conversation, and the users prompt
-	responseChan, errChan := make(chan string), make(chan error)
+	// Use the new streaming API with correct types
+	err := conv.SendStream(oneMin, userInput, "", func(ctx context.Context, response *types.StreamResponse) error {
+		if response.Delta != nil && response.Delta.TextData != "" {
+			fmt.Print(response.Delta.TextData)
+		}
+		return nil
+	})
 
-	// Check if the user's input contains a resource command
-	modifiedInput, resourcesAdded, err := tools.ManageResources(conv, userInput)
 	if err != nil {
 		return err
 	}
-	if len(modifiedInput) == 0 {
-		fmt.Println("Please provide a message to continue the conversation.")
-		return nil
-	} else if len(resourcesAdded) > 0 {
-		fmt.Println("Resources added to conversation: ", strings.Join(resourcesAdded, ","))
-	}
 
-	go client.SendStreamRequest(oneMin, conv, modifiedInput, responseChan, errChan)
-	// Read the response from the channel as it is streamed
-	for {
-		select {
-		case response, ok := <-responseChan:
-			if !ok {
-				// Request channel closed
-				fmt.Println()
-				return nil
-			}
-			fmt.Print(response)
-		case err := <-errChan:
-			fmt.Println()
-			return err
-		}
-	}
+	fmt.Println() // Add newline after streaming is complete
+	return nil
 }

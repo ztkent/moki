@@ -2,115 +2,100 @@
 <a href="https://github.com/ztkent/moki/actions"><img src="https://github.com/ztkent/moki/actions/workflows/build.yml/badge.svg?branch=main" alt="Build Status"></a>
 # <img width="40" alt="logo_moki" src="https://github.com/ztkent/moki/assets/7357311/f1dfb864-3c20-4384-898b-1acc4bb7c92f"> Moki
 
-An AI Assistant for the command line.  
+An AI Assistant for the command line. Tuned to assist with developer tasks.
 
-Tuned to assist with developer tasks like finding files, installing packages, and git.  
-Conversation mode can explain code snippets, generate unit tests, and scaffold new projects.
+## Installation
 
-## Usage
+```bash
+go install github.com/ztkent/moki/cmd/moki@latest
+```
 
-- Install Moki:  
+### Flags
 
-  ```bash
-  go install github.com/ztkent/moki/cmd/moki@latest
-  ```
-  
-- Set your API key as an environment variable:
-
-  ```bash
-  export OPENAI_API_KEY=<your key>
-  export REPLICATE_API_TOKEN=<your key>
-  ```
-
-- Run Moki:
-
-  ```bash
-  # Ask the assistant a question
-  moki [your question]
-
-  # Provide additional context
-  cat moki.go | moki [tell me about this code]
-  moki [tell me about this code]    -file:moki.go
-  moki [tell me about this project] -url:https://github.com/ztkent/moki
-
-  # Start a conversation with the assistant
-  moki -c
-  moki -c -m=turbo -max-tokens=100000 -t=0.5
-  ```
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-h, --help` | Show help message | |
+| `-c, --conversation` | Start interactive conversation | |
+| `-llm <provider>` | Select LLM provider: openai, replicate, google | openai |
+| `-m <model>` | Set specific model (uses provider default if empty) | |
+| `-t <temperature>` | Set response temperature (0.0-1.0) | 0.7 |
+| `--max-tokens <number>` | Set maximum tokens to generate | 4096 |
+| `--flags` | Log the flags used for this request | |
 
 ## Configuration
 
-- There are a few options for the API provider:  
-  - OpenAI (<https://platform.openai.com/docs/overview>)  
-  - Replicate (<https://replicate.com/docs>)
+### Environment Variables
+
+Set up your API keys for the providers you want to use:
 
 ```bash
-Flags:
-  -c:                        Start a conversation with Moki
-  -llm:                      Set the LLM Provider
-  -m:                        Set the model to use for the LLM response
-  -max-tokens:               Set the maximum number of tokens to generate
-  -t:                        Set the temperature for the LLM response
-  -d:                        Show debug logging
+# OpenAI
+export OPENAI_API_KEY="your-openai-api-key"
 
-Model Options:
-  - OpenAI:
-    - gpt-3.5-turbo, aka: turbo35
-    - gpt-4-turbo, aka: turbo
-    - gpt-4o
-    - gpt-4o-mini
-    - o1-preview
-    - o1-mini
-    - [Default] gpt-4.1
-  - Replicate:
-    - [Default] meta-llama-3-8b, aka: l3-8b
-    - meta-llama-3-8b-instruct, aka: l3-8b-instruct
-    - meta-llama-3-70b, aka: l3-70b
-    - meta-llama-3-70b-instruct, aka: l3-70b-instruct
+# Google (Gemini)
+export GOOGLE_API_KEY="your-google-api-key"
+export GOOGLE_PROJECT_ID="your-project-id"  # Optional
+
+# Replicate
+export REPLICATE_API_TOKEN="your-replicate-token"
+
+# Logging (optional)
+export LOG_LEVEL="info"  # debug, info, error
 ```
 
-### Conversation
+### Default Models
 
-The assistant can be used in conversation mode.  
-This allows the assistant to generate more in-depth responses.
+- **OpenAI**: `gpt-3.5-turbo`
+- **Google**: `gemini-2.0-flash`
+- **Replicate**: `meta/meta-llama-3-8b-instruct`
+
+## Examples
 
 ```bash
+# Get help with Git commands
+moki "How do I undo the last commit in Git?"
+
+# Python programming assistance
+moki "Create a Python decorator for timing functions"
+
+# System administration
+moki "How to check disk usage on Ubuntu?"
+```
+
+### Interactive Mode
+
+```bash
+# Start a conversation
 moki -c
+
+# In conversation mode, you can:
+# - Ask follow-up questions
+# - Build on previous context
+# - Get detailed explanations
 ```
 
-### API Provider
-
-By default the assistant will use OpenAI. To use another, run the assistant with a flag.
+### Provider-Specific Usage
 
 ```bash
-moki -llm=openai
-moki -llm=replicate 
+# Use Google's Gemini for creative tasks
+moki -llm google "Write a haiku about programming"
+
+# Use Replicate for open-source models
+moki -llm replicate "Explain machine learning basics"
+
+# Use OpenAI with specific model
+moki -llm openai -m gpt-4 "Review this code architecture"
 ```
 
-### Model
-
-Depending on the provider selected, different models are available.  
+### Advanced Configuration
 
 ```bash
-moki -m=turbo
-moki -m=m8x7b
-moki -m=l3-70b
-```
+# High creativity for creative writing
+moki -t 0.9 "Write a creative story about a robot"
 
-#### Token Limit
+# Low temperature for factual queries
+moki -t 0.1 "What is the capital of France?"
 
-Tokens cost money.  
-By default the assistant will limit any conversation to 100k tokens.
-
-```bash
-moki -max-tokens=100000
-```
-
-#### Temperature
-
-The temperature of an LLM response is a measure of randomness.  
-The value float between 0 and 1. By default the temperature is 0.2
-
-```bash
-moki -t=0.5
+# Limit response length
+moki --max-tokens 500 "Summarize quantum physics briefly"
 ```
