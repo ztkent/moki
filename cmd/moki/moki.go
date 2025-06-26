@@ -44,7 +44,7 @@ func main() {
 	// Define the flags
 	helpFlag := flag.Bool("h", false, "Show this message")
 	convFlag := flag.Bool("c", false, "Start a conversation with Moki")
-	aiFlag := flag.String("llm", "openai", "Select the LLM provider: openai, replicate, or google")
+	aiFlag := flag.String("llm", "google", "Select the LLM provider: openai, replicate, or google")
 	modelFlag := flag.String("m", "", "Set the model to use for the LLM response (uses provider default if empty)")
 	temperatureFlag := flag.Float64("t", 0.7, "Set the temperature for the LLM response")
 	maxTokensFlag := flag.Int("max-tokens", 4096, "Set the maximum number of tokens to generate per response")
