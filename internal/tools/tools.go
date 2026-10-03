@@ -37,7 +37,8 @@ MODES
 FLAGS
     -m, --model <id>      Model to use (opens the picker when omitted)
     -t, --temperature     Sampling temperature, 0.0-2.0 (default 0.7)
-        --max-tokens      Maximum tokens per response (default 4096)
+        --max-tokens      Maximum tokens per response (default 16384)
+        --set-model       Choose a model with the picker, save it, and exit
         --list-models     List available models and exit
         --refresh-models  Refresh the cached model catalog
         --no-picker       Skip the interactive model picker
@@ -47,6 +48,7 @@ FLAGS
 EXAMPLES
     moki "how do I undo the last git commit?"
     moki -c
+    moki --set-model
     moki -m anthropic/claude-sonnet-5.5 "review this function"
     cat main.go | moki "explain this code"
 
@@ -54,4 +56,4 @@ ENVIRONMENT
     OPENROUTER_API_KEY    Required. Create one at https://openrouter.ai/keys
     MOKI_MODEL            Default model when none is chosen
 
-Models are served through OpenRouter (https://openrouter.ai).`
+Your chosen model is saved and reused on the next run.`

@@ -44,14 +44,14 @@ func newTestModel(t *testing.T, reply string) (ChatModel, *httptest.Server) {
 	client := aiutil.New("k", aiutil.WithBaseURL(srv.URL))
 	session := chat.New(client, "test/model", "system", 0.5, 100)
 	catalog := &models.Catalog{Models: []models.Model{{ID: "a/one", Name: "One"}}}
-	return NewChatModel(context.Background(), session, catalog, "introduce yourself"), srv
+	return NewChatModel(context.Background(), session, catalog, "introduce yourself", "", nil), srv
 }
 
 func TestChatIntro(t *testing.T) {
 	m, srv := newTestModel(t, "hello, I am Moki")
 	defer srv.Close()
 
-	updated, _ := m.Update(introMsg{text: "hello, I am Moki"})
+	updated, _ := m.Update(introMsg{reply: &chat.Reply{Text: "hello, I am Moki"}})
 	m = updated.(ChatModel)
 	if len(m.transcript) != 1 || !strings.Contains(m.transcript[0], "hello, I am Moki") {
 		t.Errorf("transcript = %v", m.transcript)
@@ -81,8 +81,15 @@ func TestChatUserMessageStreams(t *testing.T) {
 	if m.streaming {
 		t.Error("streaming should have finished")
 	}
-	if len(m.transcript) != 2 || !strings.Contains(m.transcript[1], "the answer") {
+	// transcript: user, assistant reply, footer.
+	if len(m.transcript) != 3 {
+		t.Fatalf("transcript length = %d, want 3: %v", len(m.transcript), m.transcript)
+	}
+	if !strings.Contains(m.transcript[1], "the answer") {
 		t.Errorf("assistant reply not recorded: %v", m.transcript)
+	}
+	if !strings.Contains(m.transcript[2], "test/model") {
+		t.Errorf("footer missing model: %v", m.transcript)
 	}
 }
 

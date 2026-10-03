@@ -11,6 +11,7 @@ import (
 	"github.com/ztkent/moki/internal/chat"
 	"github.com/ztkent/moki/internal/config"
 	"github.com/ztkent/moki/internal/models"
+	"github.com/ztkent/moki/internal/prefs"
 	"github.com/ztkent/moki/internal/prompts"
 	"github.com/ztkent/moki/internal/tools"
 	"github.com/ztkent/moki/internal/ui"
@@ -39,6 +40,9 @@ func Run(ctx context.Context, cfg *config.Config) error {
 	if cfg.ListModels {
 		return listModels(ctx, apiKey, cfg.RefreshModels)
 	}
+	if cfg.SetModel {
+		return setModel(ctx, apiKey, cfg.RefreshModels)
+	}
 
 	model, err := resolveModel(ctx, cfg, apiKey)
 	if err != nil {
@@ -51,13 +55,17 @@ func Run(ctx context.Context, cfg *config.Config) error {
 	return runOneShot(ctx, client, cfg, model)
 }
 
-// resolveModel picks a model from the flag, environment, picker, or default.
+// resolveModel picks a model from the flag, environment, saved preference,
+// picker, or default, in that order.
 func resolveModel(ctx context.Context, cfg *config.Config, apiKey string) (string, error) {
 	if cfg.Model != "" {
 		return cfg.Model, nil
 	}
 	if env := os.Getenv("MOKI_MODEL"); env != "" {
 		return env, nil
+	}
+	if saved := prefs.Model(); saved != "" {
+		return saved, nil
 	}
 	if cfg.NoPicker {
 		return defaultModel(ctx, apiKey, cfg.RefreshModels), nil
@@ -68,14 +76,36 @@ func resolveModel(ctx context.Context, cfg *config.Config, apiKey string) (strin
 		// A missing catalog shouldn't block a request; fall back to the default.
 		return config.DefaultModel, nil
 	}
-	chosen, err := ui.RunPicker(catalog, os.Stderr)
+	chosen, err := ui.RunPicker(catalog, "", os.Stderr)
 	if err != nil {
 		return "", err
 	}
 	if chosen != nil {
+		_ = prefs.SetModel(chosen.ID)
 		return chosen.ID, nil
 	}
 	return defaultModel(ctx, apiKey, cfg.RefreshModels), nil
+}
+
+// setModel opens the picker, saves the choice, and exits without a request.
+func setModel(ctx context.Context, apiKey string, refresh bool) error {
+	catalog, err := models.Load(ctx, apiKey, refresh)
+	if err != nil {
+		return err
+	}
+	chosen, err := ui.RunPicker(catalog, prefs.Model(), os.Stderr)
+	if err != nil {
+		return err
+	}
+	if chosen == nil {
+		fmt.Println("No model selected.")
+		return nil
+	}
+	if err := prefs.SetModel(chosen.ID); err != nil {
+		return err
+	}
+	fmt.Println("Saved model:", chosen.ID)
+	return nil
 }
 
 // defaultModel prefers a free model from the catalog, falling back to the
@@ -99,13 +129,14 @@ func runOneShot(ctx context.Context, client *aiutil.Client, cfg *config.Config, 
 	}
 
 	session := chat.New(client, model, prompts.RequestPrompt, cfg.Temperature, cfg.MaxTokens)
-	_, err := session.SendStream(ctx, question, func(text string) {
+	reply, err := session.SendStream(ctx, question, func(text string) {
 		fmt.Print(text)
 	})
 	if err != nil {
 		return err
 	}
 	fmt.Println()
+	fmt.Println(ui.Footer(reply.Model, reply.Usage.TotalTokens))
 	return nil
 }
 
@@ -131,7 +162,9 @@ func runConversation(ctx context.Context, client *aiutil.Client, cfg *config.Con
 	fmt.Println()
 
 	session := chat.New(client, model, prompts.ConversationPrompt, cfg.Temperature, cfg.MaxTokens)
-	return ui.RunChat(ctx, session, catalog, prompts.IntroPrompt)
+	return ui.RunChat(ctx, session, catalog, prompts.IntroPrompt, model, func(id string) {
+		_ = prefs.SetModel(id)
+	})
 }
 
 // listModels prints the catalog to stdout.

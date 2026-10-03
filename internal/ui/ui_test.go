@@ -42,11 +42,31 @@ func TestNewPicker(t *testing.T) {
 		{ID: "a/one", Name: "One"},
 		{ID: "b/two", Name: "Two"},
 	}}
-	p := NewPicker(catalog)
+	p := NewPicker(catalog, "")
 	if p.Chosen() != nil {
 		t.Error("a fresh picker should have no selection")
 	}
 	if got := p.list.Items(); len(got) != 2 {
 		t.Errorf("picker items = %d, want 2", len(got))
+	}
+}
+
+func TestNewPickerMarksPreferred(t *testing.T) {
+	catalog := &models.Catalog{Models: []models.Model{
+		{ID: "a/one", Name: "One"},
+		{ID: "b/two", Name: "Two"},
+	}}
+	p := NewPicker(catalog, "b/two")
+
+	// The preferred model is pre-selected and marked with a star.
+	sel, ok := p.list.SelectedItem().(modelItem)
+	if !ok || sel.model.ID != "b/two" {
+		t.Fatalf("selected = %+v, want b/two", p.list.SelectedItem())
+	}
+	if !sel.preferred || !strings.HasPrefix(sel.Title(), "★") {
+		t.Errorf("preferred item not marked: %q", sel.Title())
+	}
+	if !strings.Contains(sel.Description(), "preferred") {
+		t.Errorf("description missing preferred: %q", sel.Description())
 	}
 }

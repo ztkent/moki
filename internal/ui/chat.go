@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -20,16 +21,16 @@ const chatHelp = `Commands:
 // streamMsg carries a chunk of streamed assistant text.
 type streamMsg string
 
-// streamDoneMsg signals the end of a streamed reply and carries its full text.
+// streamDoneMsg signals the end of a streamed reply.
 type streamDoneMsg struct {
-	text string
-	err  error
+	reply *chat.Reply
+	err   error
 }
 
 // introMsg carries Moki's opening greeting.
 type introMsg struct {
-	text string
-	err  error
+	reply *chat.Reply
+	err   error
 }
 
 // ChatModel is the interactive conversation TUI.
@@ -38,6 +39,8 @@ type ChatModel struct {
 	session     *chat.Session
 	catalog     *models.Catalog
 	introPrompt string
+	preferred   string
+	onModel     func(string)
 
 	viewport viewport.Model
 	input    textinput.Model
@@ -52,8 +55,9 @@ type ChatModel struct {
 	program *tea.Program
 }
 
-// NewChatModel builds the conversation model.
-func NewChatModel(ctx context.Context, session *chat.Session, catalog *models.Catalog, introPrompt string) ChatModel {
+// NewChatModel builds the conversation model. preferred marks the saved model
+// in the picker; onModel is called when the user changes it.
+func NewChatModel(ctx context.Context, session *chat.Session, catalog *models.Catalog, introPrompt, preferred string, onModel func(string)) ChatModel {
 	input := textinput.New()
 	input.Prompt = "You: "
 	input.Placeholder = "ask anything, or /help"
@@ -64,14 +68,16 @@ func NewChatModel(ctx context.Context, session *chat.Session, catalog *models.Ca
 		session:     session,
 		catalog:     catalog,
 		introPrompt: introPrompt,
+		preferred:   preferred,
+		onModel:     onModel,
 		viewport:    viewport.New(0, 0),
 		input:       input,
 	}
 }
 
 // RunChat runs the conversation TUI until the user exits.
-func RunChat(ctx context.Context, session *chat.Session, catalog *models.Catalog, introPrompt string) error {
-	m := NewChatModel(ctx, session, catalog, introPrompt)
+func RunChat(ctx context.Context, session *chat.Session, catalog *models.Catalog, introPrompt, preferred string, onModel func(string)) error {
+	m := NewChatModel(ctx, session, catalog, introPrompt, preferred, onModel)
 	p := tea.NewProgram(m)
 	m.program = p
 	_, err := p.Run()
@@ -84,8 +90,8 @@ func (m ChatModel) Init() tea.Cmd {
 
 func (m ChatModel) fetchIntro() tea.Cmd {
 	return func() tea.Msg {
-		text, err := m.session.Send(m.ctx, m.introPrompt)
-		return introMsg{text: text, err: err}
+		reply, err := m.session.Send(m.ctx, m.introPrompt)
+		return introMsg{reply: reply, err: err}
 	}
 }
 
@@ -141,8 +147,9 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case msg.err != nil:
 			m.transcript = append(m.transcript, errorStyle.Render("error: "+msg.err.Error()))
-		case msg.text != "":
-			m.transcript = append(m.transcript, assistantBlock(msg.text))
+		case msg.reply != nil && msg.reply.Text != "":
+			m.transcript = append(m.transcript, assistantBlock(msg.reply.Text))
+			m.transcript = append(m.transcript, footerBlock(msg.reply))
 		}
 		m.pending = ""
 		m.render()
@@ -151,8 +158,8 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case introMsg:
 		if msg.err != nil {
 			m.transcript = append(m.transcript, errorStyle.Render("error: "+msg.err.Error()))
-		} else {
-			m.transcript = append(m.transcript, assistantBlock(msg.text))
+		} else if msg.reply != nil {
+			m.transcript = append(m.transcript, assistantBlock(msg.reply.Text))
 		}
 		m.render()
 		return m, nil
@@ -168,8 +175,7 @@ func (m ChatModel) updatePicker(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch {
 	case pm.Chosen() != nil:
-		m.session.SetModel(pm.Chosen().ID)
-		m.transcript = append(m.transcript, systemBlock("model → "+pm.Chosen().ID))
+		m.applyModel(pm.Chosen().ID)
 		m.picker = nil
 		m.render()
 		return m, nil
@@ -179,6 +185,16 @@ func (m ChatModel) updatePicker(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 	return m, cmd
+}
+
+// applyModel switches the session model, records it, and persists the choice.
+func (m *ChatModel) applyModel(id string) {
+	m.session.SetModel(id)
+	m.preferred = id
+	if m.onModel != nil {
+		m.onModel(id)
+	}
+	m.transcript = append(m.transcript, systemBlock("model → "+id))
 }
 
 // handleInput routes slash commands or starts a streamed reply.
@@ -207,8 +223,7 @@ func (m ChatModel) handleCommand(value string) (tea.Model, tea.Cmd) {
 		return m, nil
 	case "/model":
 		if len(fields) > 1 {
-			m.session.SetModel(fields[1])
-			m.transcript = append(m.transcript, systemBlock("model → "+fields[1]))
+			m.applyModel(fields[1])
 			m.render()
 			return m, nil
 		}
@@ -217,7 +232,7 @@ func (m ChatModel) handleCommand(value string) (tea.Model, tea.Cmd) {
 			m.render()
 			return m, nil
 		}
-		p := NewPicker(m.catalog)
+		p := NewPicker(m.catalog, m.preferred)
 		m.picker = &p
 		return m, nil
 	case "/help":
@@ -232,17 +247,15 @@ func (m ChatModel) handleCommand(value string) (tea.Model, tea.Cmd) {
 }
 
 // startStream runs a streamed reply, forwarding chunks to the program for live
-// display and returning the full text when the stream ends.
+// display and returning the reply when the stream ends.
 func (m ChatModel) startStream(prompt string) tea.Cmd {
 	return func() tea.Msg {
-		var full strings.Builder
-		_, err := m.session.SendStream(m.ctx, prompt, func(text string) {
-			full.WriteString(text)
+		reply, err := m.session.SendStream(m.ctx, prompt, func(text string) {
 			if m.program != nil {
 				m.program.Send(streamMsg(text))
 			}
 		})
-		return streamDoneMsg{text: full.String(), err: err}
+		return streamDoneMsg{reply: reply, err: err}
 	}
 }
 
@@ -267,9 +280,27 @@ func (m ChatModel) View() string {
 	if !m.ready {
 		return statusStyle.Render("Starting Moki…")
 	}
-	return m.viewport.View() + "\n" + m.input.View()
+	return m.viewport.View() + "\n" + m.input.View() + "\n" + m.statusLine()
+}
+
+// statusLine shows the active model and a hint.
+func (m ChatModel) statusLine() string {
+	return statusStyle.Render(fmt.Sprintf("model: %s  ·  /model to change  ·  /help", m.session.Model()))
 }
 
 func userBlock(text string) string      { return userStyle.Render("You: ") + text }
 func assistantBlock(text string) string { return mokiStyle.Render("Moki: ") + text }
 func systemBlock(text string) string    { return helpStyle.Render(text) }
+
+// footerBlock renders the model and token usage under a reply.
+func footerBlock(r *chat.Reply) string {
+	model := r.Model
+	if model == "" {
+		model = "unknown"
+	}
+	parts := []string{model}
+	if r.Usage.TotalTokens > 0 {
+		parts = append(parts, fmt.Sprintf("%d tokens", r.Usage.TotalTokens))
+	}
+	return helpStyle.Render("— " + strings.Join(parts, " · "))
+}

@@ -18,3 +18,15 @@ func Header() string {
 func Tagline(model string) string {
 	return taglineStyle.Render(fmt.Sprintf("model: %s", model))
 }
+
+// Footer renders the model and token usage shown after a one-shot answer.
+func Footer(model string, tokens int) string {
+	if model == "" {
+		model = "unknown"
+	}
+	text := model
+	if tokens > 0 {
+		text = fmt.Sprintf("%s · %d tokens", model, tokens)
+	}
+	return taglineStyle.Render("— " + text)
+}

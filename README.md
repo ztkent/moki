@@ -2,11 +2,9 @@
 <a href="https://github.com/ztkent/moki/actions"><img src="https://github.com/ztkent/moki/actions/workflows/build.yml/badge.svg?branch=main" alt="Build Status"></a>
 # <img width="40" alt="logo_moki" src="https://github.com/ztkent/moki/assets/7357311/f1dfb864-3c20-4384-898b-1acc4bb7c92f"> Moki
 
-An AI assistant for the command line, tuned for developer tasks.
+An AI assistant for the command line.
 
-Moki answers a single question and exits, or drops into an interactive
-conversation. Every model is served through [OpenRouter](https://openrouter.ai),
-so one API key unlocks the whole catalog.
+Moki quickly answers a single question, or manages an interactive conversation.
 
 ## Installation
 
@@ -16,14 +14,12 @@ go install github.com/ztkent/moki/cmd/moki@latest
 
 ## Setup
 
-Moki needs an OpenRouter API key. Create one at
-<https://openrouter.ai/keys> and export it:
-
+Moki needs an OpenRouter API key:
 ```bash
 export OPENROUTER_API_KEY="sk-or-..."
 ```
 
-Optionally set a default model so the picker is skipped:
+Optionally set a default model:
 
 ```bash
 export MOKI_MODEL="anthropic/claude-sonnet-5.5"
@@ -43,10 +39,10 @@ cat main.go | moki "explain this code"
 
 # Choose a model explicitly
 moki -m openai/gpt-6-sol "review this function"
-```
 
-On first run Moki fetches the OpenRouter model catalog and shows an
-interactive picker. The catalog is cached for 24 hours.
+# Pick a model once and save it as your default
+moki --set-model
+```
 
 ### Flags
 
@@ -56,7 +52,8 @@ interactive picker. The catalog is cached for 24 hours.
 | `-c, --conversation` | Start an interactive conversation | |
 | `-m, --model <id>` | Model to use (opens the picker when omitted) | |
 | `-t, --temperature <n>` | Sampling temperature, 0.0–2.0 | `0.7` |
-| `--max-tokens <n>` | Maximum tokens per response | `4096` |
+| `--max-tokens <n>` | Maximum tokens per response | `16384` |
+| `--set-model` | Choose a model with the picker, save it, and exit | |
 | `--list-models` | List available models and exit | |
 | `--refresh-models` | Refresh the cached model catalog | |
 | `--no-picker` | Skip the interactive model picker | |
@@ -64,7 +61,7 @@ interactive picker. The catalog is cached for 24 hours.
 
 ### Conversation commands
 
-Inside `moki -c`:
+Via `moki -c`:
 
 | Command | Description |
 |---------|-------------|
@@ -73,12 +70,21 @@ Inside `moki -c`:
 | `/help` | Show the command list |
 | `/exit` | Quit (also `/quit`, `/q`, or `ctrl+c`) |
 
+Changing the model with `/model` saves it as your default for next time.
+
 ## Environment variables
 
 | Variable | Description |
 |----------|-------------|
 | `OPENROUTER_API_KEY` | **Required.** Your OpenRouter API key. |
 | `MOKI_MODEL` | Default model when none is chosen. |
+
+## Configuration files
+
+| Path | Purpose |
+|------|---------|
+| `$XDG_CONFIG_HOME/moki/prefs.json` | Saved model preference. |
+| `$XDG_CACHE_HOME/moki/models.json` | Cached model catalog (24h TTL). |
 
 ## Development
 
@@ -89,5 +95,4 @@ make vet     # run go vet
 make install # install to $GOPATH/bin
 ```
 
-Moki is built on [`ai-util`](https://github.com/ztkent/ai-util), a small
-OpenRouter client with streaming and tool-calling support.
+Moki is built on [`ai-util`](https://github.com/ztkent/ai-util)

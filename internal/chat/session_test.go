@@ -32,14 +32,14 @@ func TestSendStream(t *testing.T) {
 	s := New(client, "test/model", "be helpful", 0.5, 100)
 
 	var streamed strings.Builder
-	got, err := s.SendStream(context.Background(), "hi", func(text string) {
+	reply, err := s.SendStream(context.Background(), "hi", func(text string) {
 		streamed.WriteString(text)
 	})
 	if err != nil {
 		t.Fatalf("SendStream: %v", err)
 	}
-	if got != "hello there" {
-		t.Errorf("reply = %q, want %q", got, "hello there")
+	if reply.Text != "hello there" {
+		t.Errorf("reply = %q, want %q", reply.Text, "hello there")
 	}
 	if streamed.String() != "hello there" {
 		t.Errorf("streamed = %q, want %q", streamed.String(), "hello there")
