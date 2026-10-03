@@ -14,14 +14,12 @@ go install github.com/ztkent/moki/cmd/moki@latest
 
 ## Setup
 
-Moki needs an OpenRouter API key. Create one at
-<https://openrouter.ai/keys> and export it:
-
+Moki needs an OpenRouter API key:
 ```bash
 export OPENROUTER_API_KEY="sk-or-..."
 ```
 
-Optionally set a default model so the picker is skipped:
+Optionally set a default model:
 
 ```bash
 export MOKI_MODEL="anthropic/claude-sonnet-5.5"
@@ -46,21 +44,6 @@ moki -m openai/gpt-6-sol "review this function"
 moki --set-model
 ```
 
-On first run Moki fetches the OpenRouter model catalog and shows an
-interactive picker. The catalog is cached for 24 hours.
-
-**Your model choice is remembered.** Whenever you pick a model — at startup,
-with `--set-model`, or via `/model` in a conversation — Moki saves it and
-reuses it next time, so you only choose once. The picker marks your saved
-model with a ★ and pre-selects it.
-
-After a one-shot answer, Moki prints the model that replied and the tokens
-used:
-
-```
-— anthropic/claude-sonnet-5.5 · 412 tokens
-```
-
 ### Flags
 
 | Flag | Description | Default |
@@ -78,7 +61,7 @@ used:
 
 ### Conversation commands
 
-Inside `moki -c`:
+Via `moki -c`:
 
 | Command | Description |
 |---------|-------------|
@@ -112,5 +95,4 @@ make vet     # run go vet
 make install # install to $GOPATH/bin
 ```
 
-Moki is built on [`ai-util`](https://github.com/ztkent/ai-util), a small
-OpenRouter client with streaming and tool-calling support.
+Moki is built on [`ai-util`](https://github.com/ztkent/ai-util)
