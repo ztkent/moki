@@ -27,12 +27,22 @@ export MOKI_MODEL="anthropic/claude-sonnet-5.5"
 
 ## Usage
 
-### Ask a question
-
 ```bash
+# Ask a question
 moki "how do I undo the last git commit but keep the changes?"
 moki "find files larger than 100MB in the current directory"
 moki "what's the difference between git fetch and git pull?"
+
+# Pipe in context
+cat main.go | moki "explain this code"
+git diff | moki "write a commit message for these changes"
+
+# Interactive conversation
+moki -c
+
+# Choose a model
+moki --set-model                    # pick once, saved for next time
+moki -m openai/gpt-6-sol "review this function"
 ```
 
 Moki answers directly and prints the model and tokens used:
@@ -40,49 +50,6 @@ Moki answers directly and prints the model and tokens used:
 ```
 git reset --soft HEAD~1
 — anthropic/claude-sonnet-5.5 · 96 tokens
-```
-
-### Pipe in context
-
-Feed a file, a diff, or command output straight into the question:
-
-```bash
-cat main.go | moki "explain this code"
-git diff | moki "write a commit message for these changes"
-kubectl logs my-pod | moki "why is this crashing?"
-```
-
-### Start a conversation
-
-```bash
-moki -c
-```
-
-Follow-up questions keep their context. Inside a conversation:
-
-```
-/model          # switch models with the picker
-/clear          # start fresh
-/exit           # quit
-```
-
-### Choose a model
-
-```bash
-moki --set-model                    # pick once, saved for next time
-moki -m openai/gpt-6-sol "..."      # use a model for one request
-moki --list-models                  # see everything available
-```
-
-Your saved model is reused automatically, so you only pick once. The picker
-marks it with a ★.
-
-### Tune the response
-
-```bash
-moki -t 0.2 "what does this regex match?"     # more focused
-moki -t 1.2 "brainstorm names for a CLI tool" # more creative
-moki --max-tokens 500 "summarize this in a sentence"
 ```
 
 ### Flags
