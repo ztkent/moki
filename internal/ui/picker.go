@@ -12,9 +12,18 @@ import (
 )
 
 // modelItem adapts a catalog entry to the bubbles list.
-type modelItem struct{ model models.Model }
+type modelItem struct {
+	model     models.Model
+	preferred bool
+}
 
-func (i modelItem) Title() string { return i.model.Name }
+func (i modelItem) Title() string {
+	if i.preferred {
+		return "★ " + i.model.Name
+	}
+	return i.model.Name
+}
+
 func (i modelItem) FilterValue() string {
 	return i.model.ID + " " + i.model.Name
 }
@@ -22,6 +31,9 @@ func (i modelItem) FilterValue() string {
 func (i modelItem) Description() string {
 	var parts []string
 	parts = append(parts, i.model.ID)
+	if i.preferred {
+		parts = append(parts, "preferred")
+	}
 	if i.model.IsFree() {
 		parts = append(parts, "free")
 	}
@@ -50,11 +62,17 @@ type PickerModel struct {
 	cancelled bool
 }
 
-// NewPicker builds a picker from a catalog.
-func NewPicker(catalog *models.Catalog) PickerModel {
+// NewPicker builds a picker from a catalog. The model matching preferred is
+// marked and pre-selected.
+func NewPicker(catalog *models.Catalog, preferred string) PickerModel {
 	items := make([]list.Item, 0, len(catalog.Models))
-	for _, m := range catalog.Models {
-		items = append(items, modelItem{model: m})
+	selected := 0
+	for i, m := range catalog.Models {
+		isPreferred := m.ID == preferred
+		if isPreferred {
+			selected = i
+		}
+		items = append(items, modelItem{model: m, preferred: isPreferred})
 	}
 
 	delegate := list.NewDefaultDelegate()
@@ -69,6 +87,9 @@ func NewPicker(catalog *models.Catalog) PickerModel {
 	l.Styles.Title = headerStyle
 	l.Styles.FilterPrompt = lipgloss.NewStyle().Foreground(accent)
 	l.Styles.FilterCursor = lipgloss.NewStyle().Foreground(accent)
+	if preferred != "" {
+		l.Select(selected)
+	}
 
 	return PickerModel{list: l}
 }
@@ -110,8 +131,8 @@ func (m PickerModel) View() string {
 }
 
 // RunPicker shows the picker and returns the chosen model, or nil if cancelled.
-func RunPicker(catalog *models.Catalog, out io.Writer) (*models.Model, error) {
-	p := tea.NewProgram(NewPicker(catalog), tea.WithOutput(out))
+func RunPicker(catalog *models.Catalog, preferred string, out io.Writer) (*models.Model, error) {
+	p := tea.NewProgram(NewPicker(catalog, preferred), tea.WithOutput(out))
 	res, err := p.Run()
 	if err != nil {
 		return nil, err

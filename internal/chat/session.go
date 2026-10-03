@@ -38,19 +38,26 @@ func (s *Session) SetModel(model string) { s.model = model }
 // Reset clears the conversation history.
 func (s *Session) Reset() { s.history = nil }
 
-// Send appends input, gets a complete reply, and returns its text.
-func (s *Session) Send(ctx context.Context, input string) (string, error) {
+// Reply is the result of a turn, including which model answered and its usage.
+type Reply struct {
+	Text  string
+	Model string
+	Usage aiutil.Usage
+}
+
+// Send appends input, gets a complete reply, and returns it.
+func (s *Session) Send(ctx context.Context, input string) (*Reply, error) {
 	s.history = append(s.history, aiutil.User(input))
 	resp, err := s.client.Chat(ctx, s.request())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	s.history = append(s.history, resp.Message)
-	return resp.Message.Content, nil
+	return s.replyFrom(resp), nil
 }
 
 // SendStream is Send with each text chunk delivered to onText.
-func (s *Session) SendStream(ctx context.Context, input string, onText func(string)) (string, error) {
+func (s *Session) SendStream(ctx context.Context, input string, onText func(string)) (*Reply, error) {
 	s.history = append(s.history, aiutil.User(input))
 	resp, err := s.client.ChatStream(ctx, s.request(), func(e aiutil.Event) error {
 		if e.Type == aiutil.EventText && onText != nil {
@@ -59,10 +66,20 @@ func (s *Session) SendStream(ctx context.Context, input string, onText func(stri
 		return nil
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	s.history = append(s.history, resp.Message)
-	return resp.Message.Content, nil
+	return s.replyFrom(resp), nil
+}
+
+// replyFrom converts an ai-util response into a Reply, falling back to the
+// requested model when the provider omits it.
+func (s *Session) replyFrom(resp *aiutil.Response) *Reply {
+	model := resp.Model
+	if model == "" {
+		model = s.model
+	}
+	return &Reply{Text: resp.Message.Content, Model: model, Usage: resp.Usage}
 }
 
 // request builds the wire request from the system prompt and history.
