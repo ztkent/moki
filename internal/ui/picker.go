@@ -57,9 +57,10 @@ func humanTokens(n int) string {
 
 // PickerModel is an interactive, filterable model chooser.
 type PickerModel struct {
-	list      list.Model
-	chosen    *models.Model
-	cancelled bool
+	list       list.Model
+	chosen     *models.Model
+	cancelled  bool
+	standalone bool
 }
 
 // NewPicker builds a picker from a catalog. The model matching preferred is
@@ -97,6 +98,12 @@ func NewPicker(catalog *models.Catalog, preferred string) PickerModel {
 // Chosen returns the selected model, or nil when the picker was cancelled.
 func (m PickerModel) Chosen() *models.Model { return m.chosen }
 
+// SetSize sets the picker's dimensions. Embedded pickers must be sized
+// explicitly, since they don't receive their own window-size events.
+func (m *PickerModel) SetSize(width, height int) {
+	m.list.SetSize(width, height)
+}
+
 func (m PickerModel) Init() tea.Cmd { return nil }
 
 func (m PickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -110,13 +117,13 @@ func (m PickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.String() {
 			case "ctrl+c", "esc":
 				m.cancelled = true
-				return m, tea.Quit
+				return m, m.quit()
 			case "enter":
 				if item, ok := m.list.SelectedItem().(modelItem); ok {
 					chosen := item.model
 					m.chosen = &chosen
 				}
-				return m, tea.Quit
+				return m, m.quit()
 			}
 		}
 	}
@@ -126,14 +133,25 @@ func (m PickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+// quit ends the picker. A standalone picker quits its own program; an embedded
+// one returns no command so the parent program keeps running.
+func (m PickerModel) quit() tea.Cmd {
+	if m.standalone {
+		return tea.Quit
+	}
+	return nil
+}
+
 func (m PickerModel) View() string {
 	return m.list.View()
 }
 
 // RunPicker shows the picker and returns the chosen model, or nil if cancelled.
 func RunPicker(catalog *models.Catalog, preferred string, out io.Writer) (*models.Model, error) {
-	p := tea.NewProgram(NewPicker(catalog, preferred), tea.WithOutput(out))
-	res, err := p.Run()
+	p := NewPicker(catalog, preferred)
+	p.standalone = true
+	prog := tea.NewProgram(p, tea.WithOutput(out))
+	res, err := prog.Run()
 	if err != nil {
 		return nil, err
 	}

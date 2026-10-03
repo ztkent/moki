@@ -52,6 +52,10 @@ type ChatModel struct {
 	quitting   bool
 	ready      bool
 
+	width       int
+	height      int
+	totalTokens int
+
 	program *tea.Program
 }
 
@@ -99,6 +103,8 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.ready = true
+		m.width = msg.Width
+		m.height = msg.Height
 		m.viewport.Width = msg.Width
 		m.viewport.Height = max(msg.Height-2, 1)
 		m.input.Width = max(msg.Width-len("You: ")-1, 1)
@@ -149,7 +155,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.transcript = append(m.transcript, errorStyle.Render("error: "+msg.err.Error()))
 		case msg.reply != nil && msg.reply.Text != "":
 			m.transcript = append(m.transcript, assistantBlock(msg.reply.Text))
-			m.transcript = append(m.transcript, footerBlock(msg.reply))
+			m.totalTokens += msg.reply.Usage.TotalTokens
 		}
 		m.pending = ""
 		m.render()
@@ -219,6 +225,7 @@ func (m ChatModel) handleCommand(value string) (tea.Model, tea.Cmd) {
 		m.session.Reset()
 		m.transcript = nil
 		m.pending = ""
+		m.totalTokens = 0
 		m.render()
 		return m, nil
 	case "/model":
@@ -233,6 +240,7 @@ func (m ChatModel) handleCommand(value string) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		p := NewPicker(m.catalog, m.preferred)
+		p.SetSize(m.width, m.height)
 		m.picker = &p
 		return m, nil
 	case "/help":
@@ -283,24 +291,15 @@ func (m ChatModel) View() string {
 	return m.viewport.View() + "\n" + m.input.View() + "\n" + m.statusLine()
 }
 
-// statusLine shows the active model and a hint.
+// statusLine shows the active model, cumulative token usage, and a hint.
 func (m ChatModel) statusLine() string {
-	return statusStyle.Render(fmt.Sprintf("model: %s  ·  /model to change  ·  /help", m.session.Model()))
+	line := fmt.Sprintf("model: %s", m.session.Model())
+	if m.totalTokens > 0 {
+		line += fmt.Sprintf("  ·  %d tokens", m.totalTokens)
+	}
+	return statusStyle.Render(line + "  ·  /model to change  ·  /help")
 }
 
 func userBlock(text string) string      { return userStyle.Render("You: ") + text }
 func assistantBlock(text string) string { return mokiStyle.Render("Moki: ") + text }
 func systemBlock(text string) string    { return helpStyle.Render(text) }
-
-// footerBlock renders the model and token usage under a reply.
-func footerBlock(r *chat.Reply) string {
-	model := r.Model
-	if model == "" {
-		model = "unknown"
-	}
-	parts := []string{model}
-	if r.Usage.TotalTokens > 0 {
-		parts = append(parts, fmt.Sprintf("%d tokens", r.Usage.TotalTokens))
-	}
-	return helpStyle.Render("— " + strings.Join(parts, " · "))
-}

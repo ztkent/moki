@@ -33,6 +33,7 @@ func mockServer(t *testing.T, reply string) *httptest.Server {
 		flusher := w.(http.Flusher)
 		fmt.Fprintf(w, "data: {\"choices\":[{\"delta\":{\"role\":\"assistant\",\"content\":%q}}]}\n\n", reply)
 		fmt.Fprint(w, "data: {\"choices\":[{\"delta\":{},\"finish_reason\":\"stop\"}]}\n\n")
+		fmt.Fprint(w, "data: {\"choices\":[],\"usage\":{\"prompt_tokens\":10,\"completion_tokens\":5,\"total_tokens\":15}}\n\n")
 		fmt.Fprint(w, "data: [DONE]\n\n")
 		flusher.Flush()
 	}))
@@ -81,15 +82,16 @@ func TestChatUserMessageStreams(t *testing.T) {
 	if m.streaming {
 		t.Error("streaming should have finished")
 	}
-	// transcript: user, assistant reply, footer.
-	if len(m.transcript) != 3 {
-		t.Fatalf("transcript length = %d, want 3: %v", len(m.transcript), m.transcript)
+	// transcript: user, assistant reply (no per-turn footer).
+	if len(m.transcript) != 2 {
+		t.Fatalf("transcript length = %d, want 2: %v", len(m.transcript), m.transcript)
 	}
 	if !strings.Contains(m.transcript[1], "the answer") {
 		t.Errorf("assistant reply not recorded: %v", m.transcript)
 	}
-	if !strings.Contains(m.transcript[2], "test/model") {
-		t.Errorf("footer missing model: %v", m.transcript)
+	// The status line carries the cumulative token total.
+	if !strings.Contains(m.statusLine(), "tokens") {
+		t.Errorf("status line missing token total: %q", m.statusLine())
 	}
 }
 
@@ -133,24 +135,41 @@ func TestChatModelPicker(t *testing.T) {
 	m, srv := newTestModel(t, "ok")
 	defer srv.Close()
 
+	// Size the model so the embedded picker gets dimensions.
+	updated, _ := m.Update(tea.WindowSizeMsg{Width: 80, Height: 24})
+	m = updated.(ChatModel)
+
 	// /model with no argument opens the picker.
-	updated, _ := m.handleInput("/model")
+	updated, _ = m.handleInput("/model")
 	m = updated.(ChatModel)
 	if m.picker == nil {
 		t.Fatal("expected the picker to open")
 	}
+	// The embedded picker must be sized, or it renders nothing.
+	if m.picker.list.Width() == 0 || m.picker.list.Height() == 0 {
+		t.Errorf("picker not sized: %dx%d", m.picker.list.Width(), m.picker.list.Height())
+	}
+	if len(m.picker.list.Items()) == 0 {
+		t.Error("picker has no items")
+	}
 
-	// Selecting an item applies it and closes the picker.
+	// Selecting an item applies it and closes the picker without quitting.
 	chosen := models.Model{ID: "a/one", Name: "One"}
 	pm := *m.picker
 	pm.chosen = &chosen
 	m.picker = &pm
-	updated, _ = m.updatePicker(tea.KeyMsg{Type: tea.KeyEnter})
+	updated, cmd := m.updatePicker(tea.KeyMsg{Type: tea.KeyEnter})
 	m = updated.(ChatModel)
 	if m.picker != nil {
 		t.Error("picker should close after selection")
 	}
 	if m.session.Model() != "a/one" {
 		t.Errorf("model = %q, want a/one", m.session.Model())
+	}
+	if m.quitting {
+		t.Error("selecting a model must not quit the conversation")
+	}
+	if cmd != nil {
+		t.Error("embedded picker should not return a quit command")
 	}
 }
