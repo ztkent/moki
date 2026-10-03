@@ -17,8 +17,9 @@ import (
 	"github.com/ztkent/moki/internal/ui"
 )
 
-// Version is the released version of Moki.
-const Version = "3.0.0"
+// Version is the released version of Moki. It is overridden at build time via
+// -ldflags "-X github.com/ztkent/moki/internal/app.Version=<version>".
+var Version = "1.8.3"
 
 // Run executes a single Moki invocation.
 func Run(ctx context.Context, cfg *config.Config) error {

@@ -2,6 +2,10 @@
 
 BINARY_NAME=moki
 
+# Version injected into the binary, derived from the latest git tag.
+VERSION=$(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+LDFLAGS=-X github.com/ztkent/moki/internal/app.Version=$(VERSION)
+
 # The Go path
 GOPATH=$(shell go env GOPATH)
 GOBUILD=go build
@@ -16,7 +20,7 @@ vet:
 	$(GOVET) ./...
 
 build:
-	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/moki
+	$(GOBUILD) -ldflags "$(LDFLAGS)" -o $(BINARY_NAME) -v ./cmd/moki
 
 run: build
 	./$(BINARY_NAME)

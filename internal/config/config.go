@@ -55,7 +55,7 @@ func Parse(args []string) (*Config, error) {
 	fs.BoolVar(&cfg.RefreshModels, "refresh-models", false, "Refresh the cached model catalog")
 	fs.BoolVar(&cfg.NoPicker, "no-picker", false, "Skip the interactive model picker")
 	fs.BoolVar(&cfg.SetModel, "set-model", false, "Choose a model with the picker, save it, and exit")
-	fs.BoolVar(&cfg.Version, "version", false, "Print the version and exit")
+	fs.BoolVarP(&cfg.Version, "version", "v", false, "Print the version and exit")
 
 	if err := fs.Parse(args); err != nil {
 		return nil, err
