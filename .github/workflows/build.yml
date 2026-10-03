@@ -2,33 +2,35 @@ name: Build
 
 on:
   push:
-    branches: [ "main" ]
-    paths:
-      - '*'
-      - '.github/workflows/go.yml'
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-    paths:
-      - '*'
-      - '.github/workflows/go.yml'
+    branches: ["main"]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-    - name: Build
-      run: go build -v ./...
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Verify formatting
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - name: Vet
+        run: go vet ./...
+      - name: Build
+        run: go build -v ./...
+
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
-    - name: Test
-      run: go test -v ./...
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Test
+        run: go test -race -v ./...

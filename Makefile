@@ -1,4 +1,4 @@
-.PHONY: build test install uninstall all
+.PHONY: build test vet install uninstall run clean all
 
 BINARY_NAME=moki
 
@@ -6,19 +6,26 @@ BINARY_NAME=moki
 GOPATH=$(shell go env GOPATH)
 GOBUILD=go build
 GOTEST=go test
+GOVET=go vet
 GOCLEAN=go clean
 
 test:
-	$(GOTEST) -v ./...
+	$(GOTEST) -race ./...
+
+vet:
+	$(GOVET) ./...
 
 build:
 	$(GOBUILD) -o $(BINARY_NAME) -v ./cmd/moki
 
+run: build
+	./$(BINARY_NAME)
+
 install: build
-	mv moki $(GOPATH)/bin
+	mv $(BINARY_NAME) $(GOPATH)/bin
 
 clean:
 	$(GOCLEAN)
-	rm $(GOPATH)/bin/$(BINARY_NAME)
+	rm -f $(GOPATH)/bin/$(BINARY_NAME)
 
-all: test install
+all: vet test install
