@@ -3,7 +3,7 @@ package ui
 import "fmt"
 
 // banner is Moki's ASCII wordmark.
-const banner = `	      _    _
+const banner = `              _    _
   /\/\   ___ | | _(_)
  /    \ / _ \| |/ / |
 / /\/\ \ (_) |   <| |  AI Assistant for the Command Line
