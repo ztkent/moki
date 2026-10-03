@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	aiutil "github.com/ztkent/ai-util"
@@ -17,9 +18,25 @@ import (
 	"github.com/ztkent/moki/internal/ui"
 )
 
-// Version is the released version of Moki. It is overridden at build time via
+// Version is set at build time via
 // -ldflags "-X github.com/ztkent/moki/internal/app.Version=<version>".
-var Version = "1.8.3"
+// When empty, the version is read from the module build info recorded by
+// `go install github.com/ztkent/moki/cmd/moki@<version>`.
+var Version = ""
+
+// version resolves the running version, preferring the ldflags-injected value
+// and falling back to the module version embedded by `go install`.
+func version() string {
+	if Version != "" {
+		return Version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if v := info.Main.Version; v != "" && v != "(devel)" {
+			return v
+		}
+	}
+	return "dev"
+}
 
 // Run executes a single Moki invocation.
 func Run(ctx context.Context, cfg *config.Config) error {
@@ -28,7 +45,7 @@ func Run(ctx context.Context, cfg *config.Config) error {
 		return nil
 	}
 	if cfg.Version {
-		fmt.Println("moki " + Version)
+		fmt.Println("moki " + version())
 		return nil
 	}
 
