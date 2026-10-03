@@ -41,15 +41,8 @@ git diff | moki "write a commit message for these changes"
 moki -c
 
 # Choose a model
-moki --set-model                    # pick once, saved for next time
+moki --set-model
 moki -m openai/gpt-6-sol "review this function"
-```
-
-Moki answers directly and prints the model and tokens used:
-
-```
-git reset --soft HEAD~1
-— anthropic/claude-sonnet-5.5 · 96 tokens
 ```
 
 ### Flags
