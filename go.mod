@@ -7,7 +7,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.5
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/spf13/pflag v1.0.10
-	github.com/ztkent/ai-util v1.3.0
+	github.com/ztkent/ai-util v1.4.0
 )
 
 require (

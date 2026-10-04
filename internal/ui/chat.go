@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	aiutil "github.com/ztkent/ai-util"
 	"github.com/ztkent/moki/internal/chat"
 	"github.com/ztkent/moki/internal/models"
 )
@@ -52,9 +53,9 @@ type ChatModel struct {
 	quitting   bool
 	ready      bool
 
-	width       int
-	height      int
-	totalTokens int
+	width  int
+	height int
+	usage  aiutil.Usage
 
 	program *tea.Program
 }
@@ -155,7 +156,7 @@ func (m ChatModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.transcript = append(m.transcript, errorStyle.Render("error: "+msg.err.Error()))
 		case msg.reply != nil && msg.reply.Text != "":
 			m.transcript = append(m.transcript, assistantBlock(msg.reply.Text))
-			m.totalTokens += msg.reply.Usage.TotalTokens
+			m.usage = m.usage.Add(msg.reply.Usage)
 		}
 		m.pending = ""
 		m.render()
@@ -225,7 +226,7 @@ func (m ChatModel) handleCommand(value string) (tea.Model, tea.Cmd) {
 		m.session.Reset()
 		m.transcript = nil
 		m.pending = ""
-		m.totalTokens = 0
+		m.usage = aiutil.Usage{}
 		m.render()
 		return m, nil
 	case "/model":
@@ -294,8 +295,9 @@ func (m ChatModel) View() string {
 // statusLine shows the active model, cumulative token usage, and a hint.
 func (m ChatModel) statusLine() string {
 	line := fmt.Sprintf("model: %s", m.session.Model())
-	if m.totalTokens > 0 {
-		line += fmt.Sprintf("  ·  %d tokens", m.totalTokens)
+	if !m.usage.IsZero() {
+		line += fmt.Sprintf("  ·  %d in / %d out / %d tokens",
+			m.usage.PromptTokens, m.usage.CompletionTokens, m.usage.TotalTokens)
 	}
 	return statusStyle.Render(line + "  ·  /model to change  ·  /help")
 }

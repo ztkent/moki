@@ -54,6 +54,7 @@ moki -m openai/gpt-6-sol "review this function"
 | `-m, --model <id>` | Model to use (opens the picker when omitted) | |
 | `-t, --temperature <n>` | Sampling temperature, 0.0–2.0 | `0.7` |
 | `--max-tokens <n>` | Maximum tokens per response | `16384` |
+| `--max-context-tokens <n>` | Trim oldest history to stay within this token budget (0 disables) | `0` |
 | `--set-model` | Choose a model with the picker, save it, and exit | |
 | `--list-models` | List available models and exit | |
 | `--refresh-models` | Refresh the cached model catalog | |

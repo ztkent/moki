@@ -24,16 +24,17 @@ const (
 
 // Config holds the resolved options for a single moki invocation.
 type Config struct {
-	Conversation  bool
-	Model         string
-	Temperature   float64
-	MaxTokens     int
-	ListModels    bool
-	RefreshModels bool
-	NoPicker      bool
-	SetModel      bool
-	Help          bool
-	Version       bool
+	Conversation     bool
+	Model            string
+	Temperature      float64
+	MaxTokens        int
+	MaxContextTokens int
+	ListModels       bool
+	RefreshModels    bool
+	NoPicker         bool
+	SetModel         bool
+	Help             bool
+	Version          bool
 
 	// Question is the positional prompt, joined with spaces.
 	Question string
@@ -51,6 +52,7 @@ func Parse(args []string) (*Config, error) {
 	fs.StringVarP(&cfg.Model, "model", "m", "", "Model to use (opens the picker when empty)")
 	fs.Float64VarP(&cfg.Temperature, "temperature", "t", DefaultTemperature, "Sampling temperature (0.0-2.0)")
 	fs.IntVar(&cfg.MaxTokens, "max-tokens", DefaultMaxTokens, "Maximum tokens to generate per response")
+	fs.IntVar(&cfg.MaxContextTokens, "max-context-tokens", 0, "Trim oldest history to stay within this token budget (0 disables)")
 	fs.BoolVar(&cfg.ListModels, "list-models", false, "List available models and exit")
 	fs.BoolVar(&cfg.RefreshModels, "refresh-models", false, "Refresh the cached model catalog")
 	fs.BoolVar(&cfg.NoPicker, "no-picker", false, "Skip the interactive model picker")
@@ -71,6 +73,9 @@ func (c *Config) Validate() error {
 	}
 	if c.MaxTokens < 1 {
 		return fmt.Errorf("max-tokens must be positive, got %d", c.MaxTokens)
+	}
+	if c.MaxContextTokens < 0 {
+		return fmt.Errorf("max-context-tokens must not be negative, got %d", c.MaxContextTokens)
 	}
 	return nil
 }

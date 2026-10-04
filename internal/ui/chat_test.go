@@ -43,7 +43,7 @@ func newTestModel(t *testing.T, reply string) (ChatModel, *httptest.Server) {
 	t.Helper()
 	srv := mockServer(t, reply)
 	client := aiutil.New("k", aiutil.WithBaseURL(srv.URL))
-	session := chat.New(client, "test/model", "system", 0.5, 100)
+	session := chat.New(client, "test/model", "system", 0.5, 100, 0)
 	catalog := &models.Catalog{Models: []models.Model{{ID: "a/one", Name: "One"}}}
 	return NewChatModel(context.Background(), session, catalog, "introduce yourself", "", nil), srv
 }

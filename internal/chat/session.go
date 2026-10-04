@@ -1,4 +1,4 @@
-// Package chat wraps an ai-util client with conversation history.
+// Package chat wraps an ai-util agent with conversation history.
 package chat
 
 import (
@@ -7,36 +7,48 @@ import (
 	aiutil "github.com/ztkent/ai-util"
 )
 
-// Session is a stateful chat with a single model.
+// Session is a stateful chat with a single model, backed by an ai-util agent.
 type Session struct {
-	client      *aiutil.Client
-	model       string
-	system      string
-	temperature *float64
-	maxTokens   int
-	history     []aiutil.Message
+	client           aiutil.ChatClient
+	model            string
+	system           string
+	maxContextTokens int
+	agent            *aiutil.Agent
 }
 
-// New creates a Session.
-func New(client *aiutil.Client, model, system string, temperature float64, maxTokens int) *Session {
-	t := temperature
-	return &Session{
-		client:      client,
-		model:       model,
-		system:      system,
-		temperature: &t,
-		maxTokens:   maxTokens,
+// New creates a Session. temperature and maxTokens apply to every model call;
+// maxContextTokens trims the oldest history to stay within budget (0 disables).
+func New(client aiutil.ChatClient, model, system string, temperature float64, maxTokens, maxContextTokens int) *Session {
+	s := &Session{
+		client:           paramClient{client, temperature, maxTokens},
+		model:            model,
+		system:           system,
+		maxContextTokens: maxContextTokens,
 	}
+	s.agent = s.newAgent()
+	return s
+}
+
+// newAgent builds an agent for the current model, seeded with history.
+func (s *Session) newAgent(history ...aiutil.Message) *aiutil.Agent {
+	return aiutil.NewAgent(s.client, s.model,
+		aiutil.WithSystem(s.system),
+		aiutil.WithMaxContextTokens(s.maxContextTokens),
+		aiutil.WithHistory(history...),
+	)
 }
 
 // Model returns the model currently in use.
 func (s *Session) Model() string { return s.model }
 
 // SetModel switches the model for subsequent turns, keeping the history.
-func (s *Session) SetModel(model string) { s.model = model }
+func (s *Session) SetModel(model string) {
+	s.model = model
+	s.agent = s.newAgent(s.agent.History()...)
+}
 
 // Reset clears the conversation history.
-func (s *Session) Reset() { s.history = nil }
+func (s *Session) Reset() { s.agent.Reset() }
 
 // Reply is the result of a turn, including which model answered and its usage.
 type Reply struct {
@@ -45,21 +57,18 @@ type Reply struct {
 	Usage aiutil.Usage
 }
 
-// Send appends input, gets a complete reply, and returns it.
+// Send gets a complete reply to input.
 func (s *Session) Send(ctx context.Context, input string) (*Reply, error) {
-	s.history = append(s.history, aiutil.User(input))
-	resp, err := s.client.Chat(ctx, s.request())
+	resp, err := s.agent.Run(ctx, input)
 	if err != nil {
 		return nil, err
 	}
-	s.history = append(s.history, resp.Message)
 	return s.replyFrom(resp), nil
 }
 
 // SendStream is Send with each text chunk delivered to onText.
 func (s *Session) SendStream(ctx context.Context, input string, onText func(string)) (*Reply, error) {
-	s.history = append(s.history, aiutil.User(input))
-	resp, err := s.client.ChatStream(ctx, s.request(), func(e aiutil.Event) error {
+	resp, err := s.agent.RunStream(ctx, input, func(e aiutil.Event) error {
 		if e.Type == aiutil.EventText && onText != nil {
 			onText(e.Text)
 		}
@@ -68,7 +77,6 @@ func (s *Session) SendStream(ctx context.Context, input string, onText func(stri
 	if err != nil {
 		return nil, err
 	}
-	s.history = append(s.history, resp.Message)
 	return s.replyFrom(resp), nil
 }
 
@@ -82,18 +90,27 @@ func (s *Session) replyFrom(resp *aiutil.Response) *Reply {
 	return &Reply{Text: resp.Message.Content, Model: model, Usage: resp.Usage}
 }
 
-// request builds the wire request from the system prompt and history.
-func (s *Session) request() *aiutil.Request {
-	msgs := make([]aiutil.Message, 0, len(s.history)+1)
-	if s.system != "" {
-		msgs = append(msgs, aiutil.System(s.system))
-	}
-	msgs = append(msgs, s.history...)
+// paramClient injects the session's sampling parameters into every request.
+// ai-util's Agent builds its own requests, so this is how temperature and max
+// tokens reach the wire.
+type paramClient struct {
+	client      aiutil.ChatClient
+	temperature float64
+	maxTokens   int
+}
 
-	return &aiutil.Request{
-		Model:       s.model,
-		Messages:    msgs,
-		Temperature: s.temperature,
-		MaxTokens:   s.maxTokens,
-	}
+func (p paramClient) Chat(ctx context.Context, req *aiutil.Request) (*aiutil.Response, error) {
+	p.apply(req)
+	return p.client.Chat(ctx, req)
+}
+
+func (p paramClient) ChatStream(ctx context.Context, req *aiutil.Request, onEvent func(aiutil.Event) error) (*aiutil.Response, error) {
+	p.apply(req)
+	return p.client.ChatStream(ctx, req, onEvent)
+}
+
+func (p paramClient) apply(req *aiutil.Request) {
+	t := p.temperature
+	req.Temperature = &t
+	req.MaxTokens = p.maxTokens
 }

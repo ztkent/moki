@@ -146,7 +146,7 @@ func runOneShot(ctx context.Context, client *aiutil.Client, cfg *config.Config, 
 		return fmt.Errorf("no question provided; run `moki --help` for usage")
 	}
 
-	session := chat.New(client, model, prompts.RequestPrompt, cfg.Temperature, cfg.MaxTokens)
+	session := chat.New(client, model, prompts.RequestPrompt, cfg.Temperature, cfg.MaxTokens, cfg.MaxContextTokens)
 	reply, err := session.SendStream(ctx, question, func(text string) {
 		fmt.Print(text)
 	})
@@ -179,7 +179,7 @@ func runConversation(ctx context.Context, client *aiutil.Client, cfg *config.Con
 	fmt.Println(ui.Tagline(model))
 	fmt.Println()
 
-	session := chat.New(client, model, prompts.ConversationPrompt, cfg.Temperature, cfg.MaxTokens)
+	session := chat.New(client, model, prompts.ConversationPrompt, cfg.Temperature, cfg.MaxTokens, cfg.MaxContextTokens)
 	return ui.RunChat(ctx, session, catalog, prompts.IntroPrompt, model, func(id string) {
 		_ = prefs.SetModel(id)
 	})

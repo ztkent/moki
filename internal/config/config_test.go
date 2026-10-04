@@ -16,13 +16,16 @@ func TestParseDefaults(t *testing.T) {
 	if cfg.MaxTokens != DefaultMaxTokens {
 		t.Errorf("max-tokens = %d, want %d", cfg.MaxTokens, DefaultMaxTokens)
 	}
+	if cfg.MaxContextTokens != 0 {
+		t.Errorf("max-context-tokens = %d, want 0", cfg.MaxContextTokens)
+	}
 	if cfg.Conversation {
 		t.Error("conversation should default to false")
 	}
 }
 
 func TestParseFlags(t *testing.T) {
-	cfg, err := Parse([]string{"-c", "-m", "openai/gpt-6-sol", "-t", "0.2", "--max-tokens", "512", "explain", "this"})
+	cfg, err := Parse([]string{"-c", "-m", "openai/gpt-6-sol", "-t", "0.2", "--max-tokens", "512", "--max-context-tokens", "8000", "explain", "this"})
 	if err != nil {
 		t.Fatalf("Parse: %v", err)
 	}
@@ -37,6 +40,9 @@ func TestParseFlags(t *testing.T) {
 	}
 	if cfg.MaxTokens != 512 {
 		t.Errorf("max-tokens = %d, want 512", cfg.MaxTokens)
+	}
+	if cfg.MaxContextTokens != 8000 {
+		t.Errorf("max-context-tokens = %d, want 8000", cfg.MaxContextTokens)
 	}
 	if cfg.Question != "explain this" {
 		t.Errorf("question = %q", cfg.Question)
@@ -59,6 +65,7 @@ func TestValidate(t *testing.T) {
 		{"temp too high", Config{Temperature: 3, MaxTokens: 100}, true},
 		{"temp negative", Config{Temperature: -1, MaxTokens: 100}, true},
 		{"zero tokens", Config{Temperature: 0.7, MaxTokens: 0}, true},
+		{"negative context", Config{Temperature: 0.7, MaxTokens: 100, MaxContextTokens: -1}, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

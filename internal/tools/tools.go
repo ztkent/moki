@@ -38,6 +38,9 @@ FLAGS
     -m, --model <id>      Model to use (opens the picker when omitted)
     -t, --temperature     Sampling temperature, 0.0-2.0 (default 0.7)
         --max-tokens      Maximum tokens per response (default 16384)
+        --max-context-tokens
+                          Trim oldest history to stay within this token budget
+                          (0 disables; useful for long conversations)
         --set-model       Choose a model with the picker, save it, and exit
         --list-models     List available models and exit
         --refresh-models  Refresh the cached model catalog
